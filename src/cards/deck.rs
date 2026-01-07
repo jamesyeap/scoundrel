@@ -40,7 +40,7 @@ impl Deck {
         Self { cards }
     }
 
-    fn draw_card(&mut self) -> Option<Card> {
+    pub fn draw_card(&mut self) -> Option<Card> {
         if self.cards.is_empty() {
             return None;
         }
@@ -53,6 +53,12 @@ impl Deck {
         let chosen_card = self.cards.remove(chosen_card_idx);
 
         Some(chosen_card)
+    }
+
+    pub fn insert_card(&mut self, card: Card) {
+        // TODO: check if card already exists in deck before inserting it
+        //         we should not have two copies of a card in a Deck
+        self.cards.push(card);
     }
 }
 
