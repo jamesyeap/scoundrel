@@ -1,4 +1,5 @@
 use crate::cards::deck::{Card, Deck};
+use crate::game::choice::Choice;
 use std::io;
 use std::io::Write;
 
@@ -26,8 +27,8 @@ impl Game {
                 break;
             }
 
-            let key = match self.read_user_input() {
-                Ok(input) => input,
+            let choice = match self.read_user_input() {
+                Ok(choice) => choice,
                 Err(error) => {
                     println!("Error: {:?}", error);
                     continue; // continue to read user input until a valid input is received
@@ -35,26 +36,22 @@ impl Game {
             };
 
             // do something with the input
-            match key {
+            match choice {
                 // TODO: fetch the actual score from the GameState, and return it
-                0 => {
+                 Choice::EXIT => {
                     println!("Exiting the game...");
                     return Ok(-1); // return the user score
                 }
 
                 // TODO: do something with the chosen card
-                1..=4 => println!("You chose card: {key}\n"),
-
-                // not possible to reach here, as we are already checking that
-                // the user input is between 1 to 4 in read_user_input()
-                _ => println!("Invalid key!"),
+                Choice::OPTION(card_number) => println!("You chose card: {card_number}\n", ),
             }
         }
 
         Ok(-1)
     }
 
-    fn read_user_input(&self) -> io::Result<u8> {
+    fn read_user_input(&self) -> io::Result<Choice> {
         // show prompt to user
         println!("Enter the card number [1-4] to select it - to quit the game, enter 0:");
 
@@ -68,18 +65,10 @@ impl Game {
             .parse::<u8>()
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "is not a valid u8"));
 
-        if let Ok(key) = result
-            && key > 4
-        {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "input can only be 0, 1, 2, 3 or 4.",
-            ));
-        }
-
         self.clear_screen();
 
-        result
+        TryInto::<Choice>::try_into(result?)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
     }
 
     fn clear_screen(&self) {
