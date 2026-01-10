@@ -1,8 +1,9 @@
+use rand::prelude::*;
+use rand::rng;
+use std::fmt::{Display, Formatter, write};
 use std::hash::Hash;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use rand::prelude::*;
-use rand::rng;
 
 pub struct Deck {
     cards: Vec<Card>,
@@ -10,13 +11,26 @@ pub struct Deck {
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
 enum Suite {
-    Spade, Club, Diamond, Hearts,
+    Spade,
+    Club,
+    Diamond,
+    Hearts,
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
 enum Rank {
-    Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
-    Jack, Queen, King,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    Ten,
+    Jack,
+    Queen,
+    King,
     Ace,
 }
 
@@ -26,13 +40,20 @@ pub struct Card {
     rank: Rank,
 }
 
+impl Display for Card {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}, {:?}", self.suite, self.rank).expect("Cannot print card to display.");
+        Ok(())
+    }
+}
+
 impl Deck {
     fn new() -> Self {
         let mut cards = Vec::new();
 
         for suite in Suite::iter() {
             for rank in Rank::iter() {
-                let card = Card{ suite, rank };
+                let card = Card { suite, rank };
                 cards.push(card);
             }
         }
@@ -69,8 +90,8 @@ impl Default for Deck {
 }
 
 mod test {
-    use std::collections::HashSet;
     use crate::cards::deck::Deck;
+    use std::collections::HashSet;
 
     #[test]
     fn cards_should_only_be_drawn_once() {

@@ -1,4 +1,5 @@
 use crate::cards::deck::{Card, Deck};
+use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use std::io;
 use std::io::Write;
@@ -16,38 +17,43 @@ impl Game {
 
     /// returns the score at the end of the game
     pub fn start_game(&mut self) -> io::Result<i16> {
-        self.clear_screen();
-
         loop {
-            let hand = self.game_state.draw_cards(4);
-
-            println!("You drew: ");
-            println!("{:?}", hand);
+            let mut hand = self.game_state.draw_cards(4);
 
             // if we can no longer draw 4 cards, the game ends
-            if hand.len() != 4 {
+            if hand.num_cards_remaining() != 4 {
                 // TODO: calculate a legit score and save it to GameState before breaking
                 break;
             }
 
-            let choice = match self.read_user_input() {
-                Ok(choice) => choice,
-                Err(error) => {
-                    println!("Error: {:?}", error);
-                    continue; // continue to read user input until a valid input is received
-                }
-            };
-
             // do something with the input
-            match choice {
-                // TODO: fetch the actual score from the GameState, and return it
-                 Choice::EXIT => {
-                    println!("Exiting the game...");
-                    return Ok(-1); // return the user score
-                }
+            while hand.num_cards_remaining() > 1 {
+                self.clear_screen();
+                println!("You drew these cards: ");
+                println!("{hand}\n");
 
-                // TODO: do something with the chosen card
-                Choice::OPTION(card_number) => println!("You chose card: {card_number}\n", ),
+                let choice = match self.read_user_input() {
+                    Ok(choice) => choice,
+                    Err(error) => {
+                        println!("Error: {:?}", error);
+                        continue; // continue to read user input until a valid input is received
+                    }
+                };
+
+                match choice {
+                    // TODO: fetch the actual score from the GameState, and return it
+                    Choice::EXIT => {
+                        self.clear_screen();
+                        println!("Exiting the game...\n");
+                        return Ok(-1); // return the user score
+                    }
+
+                    Choice::OPTION(card_number) => {
+                        // TODO: do something with the chosen card
+                        let chosen_card = hand.remove_card(card_number as usize);
+                        println!("You chose {:?}", chosen_card);
+                    }
+                }
             }
         }
 
@@ -67,8 +73,6 @@ impl Game {
             .trim()
             .parse::<u8>()
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "is not a valid u8"));
-
-        self.clear_screen();
 
         TryInto::<Choice>::try_into(result?)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
@@ -96,12 +100,12 @@ impl GameState {
         }
     }
 
-    fn draw_cards(&mut self, number_of_cards: usize) -> Vec<Card> {
-        let mut hand = Vec::new();
+    fn draw_cards(&mut self, number_of_cards: usize) -> Hand {
+        let mut hand = Hand::new();
 
         for _ in 0..number_of_cards {
             if let Some(card) = self.deck.draw_card() {
-                hand.push(card);
+                hand.add_card(card);
             }
         }
 

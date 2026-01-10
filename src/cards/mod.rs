@@ -1,2 +1,2 @@
 pub mod deck;
-mod hand;
+pub mod hand;
