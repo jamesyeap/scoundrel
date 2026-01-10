@@ -21,6 +21,9 @@ impl Game {
         loop {
             let hand = self.game_state.draw_cards(4);
 
+            println!("You drew: ");
+            println!("{:?}", hand);
+
             // if we can no longer draw 4 cards, the game ends
             if hand.len() != 4 {
                 // TODO: calculate a legit score and save it to GameState before breaking

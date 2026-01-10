@@ -1,3 +1,5 @@
+//! Play Scoundrel in your command-line interface.
+
 mod cards;
 mod game;
 

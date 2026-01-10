@@ -17,17 +17,17 @@ impl std::error::Error for ChoiceParseError {}
 
 pub enum Choice {
     OPTION(u8),
-    EXIT
+    EXIT,
 }
 
 impl TryFrom<u8> for Choice {
     type Error = ChoiceParseError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value > 4 {
-            Err(ChoiceParseError::OutOfRange(value))
-        } else {
-            Ok(Self::OPTION(value))
+        match value {
+            0 => Ok(Self::EXIT),
+            1..=4 => Ok(Self::OPTION(value)),
+            _ => Err(ChoiceParseError::OutOfRange(value)),
         }
     }
 }
