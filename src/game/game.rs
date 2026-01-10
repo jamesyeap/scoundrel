@@ -1,11 +1,25 @@
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
+use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::Write;
 
 pub struct Game {
     game_state: GameState,
+}
+
+impl Display for GameState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Health: {}\n", self.life).expect("Failed to write life points to display.");
+        if let Some(weapon) = self.equipped_weapon.as_ref() {
+            write!(f, "Equipped weapon: {weapon}\n")
+                .expect("Failed to write equipped weapon to display.");
+            write!(f, "Blocked damage: {}\n", self.blocked_damage)
+                .expect("Failed to write block damange to display");
+        };
+        Ok(())
+    }
 }
 
 impl Game {
@@ -87,7 +101,10 @@ impl Game {
                                             );
 
                                         let creature_strength = card.rank.get_value();
-                                        let damage_blocked = std::cmp::min(creature_strength, weapon_strength_remaining);
+                                        let damage_blocked = std::cmp::min(
+                                            creature_strength,
+                                            weapon_strength_remaining,
+                                        );
                                         let damage_to_take = creature_strength - damage_blocked;
 
                                         // update life points
@@ -96,13 +113,8 @@ impl Game {
                                     }
                                 }
 
-                                println!("Health: {}", self.game_state.life);
-
-                                if let Some(weapon) = self.game_state.equipped_weapon.as_ref() {
-                                    println!("Equipped weapon: {weapon}");
-                                    println!("Blocked damage: {}", self.game_state.blocked_damage);
-                                }
-                            },
+                                println!("{}", self.game_state);
+                            }
                             None => println!("You've already used this"),
                         }
                     }
