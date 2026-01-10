@@ -1,4 +1,4 @@
-use crate::cards::deck::{Card, Deck};
+use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use std::io;
@@ -49,9 +49,62 @@ impl Game {
                     }
 
                     Choice::OPTION(card_number) => {
-                        // TODO: do something with the chosen card
-                        let chosen_card = hand.remove_card(card_number as usize);
-                        println!("You chose {:?}", chosen_card);
+                        match hand.remove_card(card_number as usize) {
+                            Some(card) => {
+                                // TODO: do something with the chosen card
+                                println!("You chose {:?}", card);
+                                match card {
+                                    Card {
+                                        suite: Suite::Hearts,
+                                        rank: _,
+                                    } => {
+                                        self.game_state.life = self
+                                            .game_state
+                                            .life
+                                            .saturating_add(card.rank.get_value() as u8);
+                                    }
+                                    Card {
+                                        suite: Suite::Diamond,
+                                        rank: _,
+                                    } => {
+                                        self.game_state.equipped_weapon = Some(card);
+                                        self.game_state.blocked_damage = 0; // reset blocked damage to 0
+                                        // TODO: we're supposed to do something else, I think
+                                    }
+                                    Card {
+                                        suite: Suite::Spade | Suite::Club,
+                                        rank: _,
+                                    } => {
+                                        let weapon_strength = self
+                                            .game_state
+                                            .equipped_weapon
+                                            .as_ref()
+                                            .map_or_else(|| 0, |card| card.rank.get_value());
+
+                                        let weapon_strength_remaining = weapon_strength
+                                            .saturating_sub(
+                                                self.game_state.blocked_damage as usize,
+                                            );
+
+                                        let creature_strength = card.rank.get_value();
+                                        let damage_blocked = std::cmp::min(creature_strength, weapon_strength_remaining);
+                                        let damage_to_take = creature_strength - damage_blocked;
+
+                                        // update life points
+                                        self.game_state.life -= damage_to_take as u8;
+                                        self.game_state.blocked_damage += damage_blocked as u8;
+                                    }
+                                }
+
+                                println!("Health: {}", self.game_state.life);
+
+                                if let Some(weapon) = self.game_state.equipped_weapon.as_ref() {
+                                    println!("Equipped weapon: {weapon}");
+                                    println!("Blocked damage: {}", self.game_state.blocked_damage);
+                                }
+                            },
+                            None => println!("You've already used this"),
+                        }
                     }
                 }
             }
@@ -90,6 +143,8 @@ impl Game {
 struct GameState {
     deck: Deck,
     life: u8,
+    equipped_weapon: Option<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to equip Diamond cards
+    blocked_damage: u8,
 }
 
 impl GameState {
@@ -97,6 +152,8 @@ impl GameState {
         GameState {
             deck: Deck::default(),
             life: 20,
+            equipped_weapon: None,
+            blocked_damage: 0,
         }
     }
 

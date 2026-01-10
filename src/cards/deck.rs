@@ -10,7 +10,7 @@ pub struct Deck {
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
-enum Suite {
+pub enum Suite {
     Spade,
     Club,
     Diamond,
@@ -18,7 +18,7 @@ enum Suite {
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
-enum Rank {
+pub enum Rank {
     Two,
     Three,
     Four,
@@ -34,10 +34,34 @@ enum Rank {
     Ace,
 }
 
+pub trait Value {
+    fn get_value(&self) -> usize;
+}
+
+impl Value for Rank {
+    fn get_value(&self) -> usize {
+        match self {
+            Rank::Two => 2,
+            Rank::Three => 3,
+            Rank::Four => 4,
+            Rank::Five => 5,
+            Rank::Six => 6,
+            Rank::Seven => 7,
+            Rank::Eight => 8,
+            Rank::Nine => 9,
+            Rank::Ten => 10,
+            Rank::Jack => 11,
+            Rank::Queen => 12,
+            Rank::King => 13,
+            Rank::Ace => 14,
+        }
+    }
+}
+
 #[derive(Hash, PartialEq, Eq, Debug)]
 pub struct Card {
-    suite: Suite,
-    rank: Rank,
+    pub suite: Suite,
+    pub rank: Rank,
 }
 
 impl Display for Card {

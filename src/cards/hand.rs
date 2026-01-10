@@ -12,10 +12,12 @@ pub struct Hand {
 impl Display for Hand {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for (idx, card) in self.cards.iter().enumerate() {
+            let card_num = idx + 1;
             match card {
-                Some(card) => write!(f, "[{:?}]: {card}\n", idx + 1)
+                Some(card) => write!(f, "[{:?}]: {card}\n", card_num)
                     .expect("Cannot print cards in hand to display."),
-                None => write!(f, "CARD USED\n").expect("Cannot print cards in hand to display."),
+                None => write!(f, "[{:?}]: CARD USED\n", card_num)
+                    .expect("Cannot print cards in hand to display."),
             }
         }
         Ok(())
