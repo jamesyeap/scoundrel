@@ -1,19 +1,20 @@
+use crate::cards::deck::Card;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use crate::cards::deck::Card;
 
 /// Represents a hand of cards that are drawn from the deck
 #[derive(Debug)]
 pub struct Hand {
-    cards: HashMap<usize, Option<Card>>,
+    cards: Vec<Option<Card>>,
     num_cards: usize,
 }
 
 impl Display for Hand {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for (card_num, card) in self.cards.iter() {
+        for (idx, card) in self.cards.iter().enumerate() {
             match card {
-                Some(card) => write!(f, "[{:?}]: {card}\n", card_num).expect("Cannot print cards in hand to display."),
+                Some(card) => write!(f, "[{:?}]: {card}\n", idx + 1)
+                    .expect("Cannot print cards in hand to display."),
                 None => write!(f, "CARD USED\n").expect("Cannot print cards in hand to display."),
             }
         }
@@ -23,25 +24,28 @@ impl Display for Hand {
 
 impl Hand {
     pub fn new() -> Self {
-        Self { cards: HashMap::new(), num_cards: 0 }
+        Self {
+            cards: Vec::new(),
+            num_cards: 0,
+        }
     }
 
     pub fn add_card(&mut self, card: Card) {
-        let card_num = self.cards.len() + 1;
-        self.cards.insert(card_num, Some(card));
+        self.cards.push(Some(card));
         self.num_cards += 1;
     }
 
     pub fn remove_card(&mut self, card_num: usize) -> Option<Card> {
-        if let Some(slot) = self.cards.get_mut(&card_num) {
-            if let Some(card) = slot {
-                self.num_cards -= 1;
+        let idx = card_num - 1;
+        match self.cards.get_mut(idx) {
+            Some(slot) => {
+                if slot.is_some() {
+                    self.num_cards -= 1;
+                }
                 slot.take()
-            } else {
-                None
             }
-        } else {
-            None
+
+            None => None,
         }
     }
 
