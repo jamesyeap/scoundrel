@@ -135,9 +135,6 @@ impl Game {
                                                 suite: Suite::Spade | Suite::Club,
                                                 rank: _,
                                             } => {
-                                                // TODO: let user choose whether to fight the creature bare handed, or use weapon if equipped
-                                                //        for now, the default choice is to always use the weapon
-
                                                 if let Some(weapon_card) =
                                                     self.game_state.equipped_weapon.as_ref()
                                                     && self
