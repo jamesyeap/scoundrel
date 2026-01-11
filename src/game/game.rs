@@ -346,14 +346,11 @@ impl Game {
             Ok(GameScore(Some(-total_strength_of_monsters_left_in_deck)))
         } else {
             if hand.num_cards_remaining() == 1 {
-                // TODO: we can simplify this for sure
                 let bonus_score = hand
                     .iter()
                     .filter_map(|slot| slot.as_ref())
-                    .filter(|card| card.suite == Suite::Hearts)
-                    .map(|card| card.rank.get_value())
-                    .take(1)
-                    .fold(0, |total, curr| total + curr);
+                    .find(|card| card.suite == Suite::Hearts)
+                    .map_or_else(|| 0, |card| card.rank.get_value());
 
                 let score = self.game_state.life as usize + bonus_score;
                 Ok(GameScore(Some(score as i32)))
