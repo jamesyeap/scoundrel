@@ -17,6 +17,7 @@ impl std::error::Error for ChoiceParseError {}
 
 pub enum Choice {
     OPTION(u8),
+    FIGHT_WITH_WEAPON(bool),
     RUN,
     EXIT,
 }
@@ -29,6 +30,8 @@ impl TryFrom<&str> for Choice {
         match trimmed_value {
             "q" => Ok(Self::EXIT),
             "0" => Ok(Self::RUN),
+            "y" => Ok(Self::FIGHT_WITH_WEAPON(true)),
+            "n" => Ok(Self::FIGHT_WITH_WEAPON(false)),
             "1" | "2" | "3" | "4" => {
                 let card_num = trimmed_value
                     .parse::<u8>()

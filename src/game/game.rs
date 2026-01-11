@@ -1,6 +1,7 @@
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
+use crate::game::choice::Choice::FIGHT_WITH_WEAPON;
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::Write;
@@ -126,7 +127,7 @@ impl Game {
                                                 rank: _,
                                             } => {
                                                 self.game_state.equipped_weapon = Some(card);
-                                                self.game_state.blocked_creatures = None; // reset list of blocked creatures to None
+                                                self.game_state.blocked_creatures.clear(); // reset list of blocked creatures to None
                                             }
                                             Card {
                                                 suite: Suite::Spade | Suite::Club,
@@ -134,34 +135,86 @@ impl Game {
                                             } => {
                                                 // TODO: let user choose whether to fight the creature bare handed, or use weapon if equipped
                                                 //        for now, the default choice is to always use the weapon
-                                                let weapon_strength = self
-                                                    .game_state
-                                                    .equipped_weapon
-                                                    .as_ref()
-                                                    .map_or_else(
-                                                        || 0,
-                                                        |card| card.rank.get_value(),
-                                                    );
 
-                                                let creature_strength = card.rank.get_value();
-                                                let damage_to_take = creature_strength
-                                                    .saturating_sub(weapon_strength);
-
-                                                // update life points
-                                                self.game_state.life = self
-                                                    .game_state
-                                                    .life
-                                                    .saturating_sub(damage_to_take as u8);
-
-                                                // track list of creatures that were blocked
-                                                if let Some(list) =
-                                                    self.game_state.blocked_creatures.as_mut()
+                                                if let Some(weapon_card) =
+                                                    self.game_state.equipped_weapon.as_ref()
+                                                    && self
+                                                        .game_state
+                                                        .blocked_creatures
+                                                        .last()
+                                                        .map_or_else(
+                                                            || true,
+                                                            |last_blocked_creature| {
+                                                                card.rank.get_value()
+                                                                    < last_blocked_creature
+                                                                        .rank
+                                                                        .get_value()
+                                                            },
+                                                        )
                                                 {
-                                                    list.push(card);
+                                                    match self.read_user_input_for_combat_choice() {
+                                                        Ok(choice) => {
+                                                            match choice {
+                                                                FIGHT_WITH_WEAPON(true) => {
+                                                                    // fight with weapon
+                                                                    let weapon_strength =
+                                                                        weapon_card
+                                                                            .rank
+                                                                            .get_value();
+                                                                    let creature_strength =
+                                                                        card.rank.get_value();
+                                                                    let damage_to_take =
+                                                                        creature_strength
+                                                                            .saturating_sub(
+                                                                                weapon_strength,
+                                                                            );
+
+                                                                    // update life points
+                                                                    self.game_state.life = self
+                                                                        .game_state
+                                                                        .life
+                                                                        .saturating_sub(
+                                                                            damage_to_take as u8,
+                                                                        );
+
+                                                                    // track list of creatures that were blocked
+                                                                    self.game_state
+                                                                        .blocked_creatures
+                                                                        .push(card);
+                                                                }
+                                                                FIGHT_WITH_WEAPON(false) => {
+                                                                    // bare-knuckle
+                                                                    // TODO: eliminate duplicate (fight bare-knuckle)
+                                                                    // update life points
+                                                                    self.game_state.life = self
+                                                                        .game_state
+                                                                        .life
+                                                                        .saturating_sub(
+                                                                            card.rank.get_value()
+                                                                                as u8,
+                                                                        );
+                                                                }
+                                                                _ => {
+                                                                    println!(
+                                                                        "Please select enter either y/n"
+                                                                    );
+                                                                    continue; // continue to read user input until a valid input is received
+                                                                }
+                                                            }
+                                                        }
+                                                        Err(error) => {
+                                                            println!("Error: {:?}", error);
+                                                            continue; // continue to read user input until a valid input is received
+                                                        }
+                                                    }
                                                 } else {
-                                                    let mut list = Vec::new();
-                                                    list.push(card);
-                                                    self.game_state.blocked_creatures = Some(list);
+                                                    // bare-knuckle
+                                                    // TODO: eliminate duplicate (fight bare-knuckle)
+                                                    // update life points
+                                                    self.game_state.life =
+                                                        self.game_state.life.saturating_sub(
+                                                            card.rank.get_value() as u8,
+                                                        );
                                                 }
                                             }
                                         }
@@ -204,8 +257,16 @@ impl Game {
                                     }
                                 }
                             }
+                            FIGHT_WITH_WEAPON(_) => {
+                                println!("Invalid input!");
+                                continue; // continue to read user input until a valid input is received
+                            }
                         }
                     }
+                }
+                FIGHT_WITH_WEAPON(_) => {
+                    println!("Invalid input!");
+                    continue; // continue to read user input until a valid input is received
                 }
             }
         }
@@ -215,6 +276,18 @@ impl Game {
         // show prompt to user
         println!("Enter the card number [1-4] to select it - to quit the game, enter q:");
         println!("If applicable, you may avoid the room by entering 0");
+
+        // block for user input, until user hits enter
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+
+        TryInto::<Choice>::try_into(input.as_ref())
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
+    }
+
+    fn read_user_input_for_combat_choice(&self) -> io::Result<Choice> {
+        // show prompt to user
+        println!("Use weapon? [y/n]");
 
         // block for user input, until user hits enter
         let mut input = String::new();
@@ -265,10 +338,10 @@ impl Game {
                 .fold(0, |total, elem| total + elem);
             Ok(GameScore(Some(-total_strength_of_monsters_left_in_deck)))
         } else {
-                if hand.num_cards_remaining() == 1
-            {
+            if hand.num_cards_remaining() == 1 {
                 // TODO: we can simplify this for sure
-                let bonus_score = hand.iter()
+                let bonus_score = hand
+                    .iter()
                     .filter_map(|slot| slot.as_ref())
                     .filter(|card| card.suite == Suite::Hearts)
                     .map(|card| card.rank.get_value())
@@ -278,7 +351,7 @@ impl Game {
                 let score = self.game_state.life as usize + bonus_score;
                 Ok(GameScore(Some(score as i32)))
             } else {
-               Ok(GameScore(Some(self.game_state.life as i32)))
+                Ok(GameScore(Some(self.game_state.life as i32)))
             }
         }
     }
@@ -294,7 +367,7 @@ struct GameState {
     deck: Deck,
     life: u8,
     equipped_weapon: Option<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to equip Diamond cards
-    blocked_creatures: Option<Vec<Card>>, // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
+    blocked_creatures: Vec<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
 }
 
 impl GameState {
@@ -303,7 +376,7 @@ impl GameState {
             deck: Deck::default(),
             life: 20,
             equipped_weapon: None,
-            blocked_creatures: None,
+            blocked_creatures: Vec::new(),
         }
     }
 
