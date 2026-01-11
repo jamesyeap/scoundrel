@@ -62,12 +62,11 @@ impl Game {
             if hand.num_cards_remaining() != 4 {
                 return self.end_game(hand);
             }
-
             if self.game_state.life == 0 {
                 return self.end_game(hand);
             }
 
-            // do something with the input
+            /* display user stats and hand */
             self.clear_screen();
             self.show_stats();
             self.show_hand(&hand);
@@ -103,6 +102,7 @@ impl Game {
 
                 Choice::OPTION(_) => {
                     self.game_state.has_avoided_room = false;
+
                     loop {
                         match choice {
                             Choice::EXIT => {
@@ -110,12 +110,12 @@ impl Game {
                             }
 
                             Choice::RUN => {
-                                // get next choice
                                 self.clear_screen();
                                 self.show_stats();
                                 self.show_hand(&hand);
                                 println!("==> You cannot run from the room now.\n");
 
+                                // get next choice
                                 choice = match self.read_user_input() {
                                     Ok(choice) => choice,
                                     Err(error) => {
