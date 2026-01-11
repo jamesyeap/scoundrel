@@ -259,7 +259,7 @@ impl Game {
                                         self.clear_screen();
                                         self.show_stats();
                                         self.show_hand(&hand);
-                                        println!("==> You've already used this card");
+                                        println!("==> YOU'VE ALREADY USED THIS CARD <==\n");
 
                                         // get next choice
                                         choice = match self.read_user_input() {
