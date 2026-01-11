@@ -7,7 +7,7 @@ fn main() {
     let mut game = game::game::Game::new();
     
     let score = game.start_game();
-    if let Ok(score) = score {
-        println!("Your score: {}", score);
+    if let Ok(game_score) = score {
+        println!("Your score: {:?}", game_score);
     }
 }

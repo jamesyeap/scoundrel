@@ -2,6 +2,7 @@ use rand::prelude::*;
 use rand::rng;
 use std::fmt::{Display, Formatter, write};
 use std::hash::Hash;
+use std::slice::Iter;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -104,6 +105,10 @@ impl Deck {
         // TODO: check if card already exists in deck before inserting it
         //         we should not have two copies of a card in a Deck
         self.cards.push(card);
+    }
+    
+    pub fn iter(&self) -> Iter<Card> {
+        self.cards.iter()
     }
 }
 

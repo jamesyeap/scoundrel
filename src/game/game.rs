@@ -5,19 +5,32 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::Write;
 
+#[derive(Debug)]
+pub struct GameScore(Option<i32>);
+
 pub struct Game {
     game_state: GameState,
 }
 
 impl Display for GameState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "===========================================================================\n"
+        )
+        .expect("Failed to write border to display");
         write!(f, "Health: {}\n", self.life).expect("Failed to write life points to display.");
         if let Some(weapon) = self.equipped_weapon.as_ref() {
             write!(f, "Equipped weapon: {weapon}\n")
                 .expect("Failed to write equipped weapon to display.");
-            write!(f, "Blocked damage: {}\n", self.blocked_damage)
-                .expect("Failed to write block damange to display");
+            write!(f, "Blocked creatures: {:?}\n", self.blocked_creatures)
+                .expect("Failed to write blocked creatures to display");
         };
+        write!(
+            f,
+            "===========================================================================\n"
+        )
+        .expect("Failed to write border to display");
         Ok(())
     }
 }
@@ -30,117 +43,190 @@ impl Game {
     }
 
     /// returns the score at the end of the game
-    pub fn start_game(&mut self) -> io::Result<i16> {
+    pub fn start_game(&mut self) -> io::Result<GameScore> {
         loop {
             let mut hand = self.game_state.draw_cards(4);
 
+            /* check for game ending conditions */
             // if we can no longer draw 4 cards, the game ends
             if hand.num_cards_remaining() != 4 {
-                // TODO: calculate a legit score and save it to GameState before breaking
-                break;
+                return self.end_game(hand);
+            }
+
+            if self.game_state.life == 0 {
+                return self.end_game(hand);
             }
 
             // do something with the input
-            while hand.num_cards_remaining() > 1 {
-                self.clear_screen();
-                println!("You drew these cards: ");
-                println!("{hand}\n");
+            self.clear_screen();
+            self.show_stats();
+            self.show_hand(&hand);
 
-                let choice = match self.read_user_input() {
-                    Ok(choice) => choice,
-                    Err(error) => {
-                        println!("Error: {:?}", error);
-                        continue; // continue to read user input until a valid input is received
-                    }
-                };
+            let mut choice = match self.read_user_input() {
+                Ok(choice) => choice,
+                Err(error) => {
+                    println!("Error: {:?}", error);
+                    continue; // continue to read user input until a valid input is received
+                }
+            };
 
-                match choice {
-                    // TODO: fetch the actual score from the GameState, and return it
-                    Choice::EXIT => {
-                        self.clear_screen();
-                        println!("Exiting the game...\n");
-                        return Ok(-1); // return the user score
-                    }
+            match choice {
+                Choice::EXIT => {
+                    return self.exit_game();
+                }
 
-                    Choice::OPTION(card_number) => {
-                        match hand.remove_card(card_number as usize) {
-                            Some(card) => {
-                                // TODO: do something with the chosen card
-                                println!("You chose {:?}", card);
-                                match card {
-                                    Card {
-                                        suite: Suite::Hearts,
-                                        rank: _,
-                                    } => {
-                                        self.game_state.life = self
-                                            .game_state
-                                            .life
-                                            .saturating_add(card.rank.get_value() as u8);
-                                    }
-                                    Card {
-                                        suite: Suite::Diamond,
-                                        rank: _,
-                                    } => {
-                                        self.game_state.equipped_weapon = Some(card);
-                                        self.game_state.blocked_damage = 0; // reset blocked damage to 0
-                                        // TODO: we're supposed to do something else, I think
-                                    }
-                                    Card {
-                                        suite: Suite::Spade | Suite::Club,
-                                        rank: _,
-                                    } => {
-                                        let weapon_strength = self
-                                            .game_state
-                                            .equipped_weapon
-                                            .as_ref()
-                                            .map_or_else(|| 0, |card| card.rank.get_value());
+                Choice::RUN => {
+                    println!(
+                        "You chose to run from the room! Shuffling cards back into the deck..."
+                    );
+                    self.game_state.put_back_cards(&mut hand);
+                    continue;
+                }
 
-                                        let weapon_strength_remaining = weapon_strength
-                                            .saturating_sub(
-                                                self.game_state.blocked_damage as usize,
-                                            );
+                Choice::OPTION(_) => {
+                    loop {
+                        match choice {
+                            Choice::EXIT => {
+                                return self.exit_game();
+                            }
 
-                                        let creature_strength = card.rank.get_value();
-                                        let damage_blocked = std::cmp::min(
-                                            creature_strength,
-                                            weapon_strength_remaining,
-                                        );
-                                        let damage_to_take = creature_strength - damage_blocked;
+                            Choice::RUN => {
+                                // get next choice
+                                self.clear_screen();
+                                self.show_stats();
+                                self.show_hand(&hand);
+                                println!("==> You cannot run from the room now.\n");
 
-                                        // update life points
-                                        self.game_state.life -= damage_to_take as u8;
-                                        self.game_state.blocked_damage += damage_blocked as u8;
+                                choice = match self.read_user_input() {
+                                    Ok(choice) => choice,
+                                    Err(error) => {
+                                        println!("Error: {:?}", error);
+                                        continue; // continue to read user input until a valid input is received
                                     }
                                 }
-
-                                println!("{}", self.game_state);
                             }
-                            None => println!("You've already used this"),
+
+                            Choice::OPTION(card_number) => {
+                                match hand.remove_card(card_number as usize) {
+                                    Some(card) => {
+                                        println!("==> You chose {:?}", card);
+
+                                        match card {
+                                            Card {
+                                                suite: Suite::Hearts,
+                                                rank: _,
+                                            } => {
+                                                self.game_state.life = self
+                                                    .game_state
+                                                    .life
+                                                    .saturating_add(card.rank.get_value() as u8);
+                                            }
+                                            Card {
+                                                suite: Suite::Diamond,
+                                                rank: _,
+                                            } => {
+                                                self.game_state.equipped_weapon = Some(card);
+                                                self.game_state.blocked_creatures = None; // reset list of blocked creatures to None
+                                            }
+                                            Card {
+                                                suite: Suite::Spade | Suite::Club,
+                                                rank: _,
+                                            } => {
+                                                // TODO: let user choose whether to fight the creature bare handed, or use weapon if equipped
+                                                //        for now, the default choice is to always use the weapon
+                                                let weapon_strength = self
+                                                    .game_state
+                                                    .equipped_weapon
+                                                    .as_ref()
+                                                    .map_or_else(
+                                                        || 0,
+                                                        |card| card.rank.get_value(),
+                                                    );
+
+                                                let creature_strength = card.rank.get_value();
+                                                let damage_to_take = creature_strength
+                                                    .saturating_sub(weapon_strength);
+
+                                                // update life points
+                                                self.game_state.life = self
+                                                    .game_state
+                                                    .life
+                                                    .saturating_sub(damage_to_take as u8);
+
+                                                // track list of creatures that were blocked
+                                                if let Some(list) =
+                                                    self.game_state.blocked_creatures.as_mut()
+                                                {
+                                                    list.push(card);
+                                                } else {
+                                                    let mut list = Vec::new();
+                                                    list.push(card);
+                                                    self.game_state.blocked_creatures = Some(list);
+                                                }
+                                            }
+                                        }
+
+                                        self.clear_screen();
+                                        self.show_stats();
+                                        self.show_hand(&hand);
+
+                                        if self.game_state.life == 0 {
+                                            return self.end_game(hand);
+                                        }
+
+                                        if hand.num_cards_remaining() > 1 {
+                                            // get next choice
+                                            choice = match self.read_user_input() {
+                                                Ok(choice) => choice,
+                                                Err(error) => {
+                                                    println!("Error: {:?}", error);
+                                                    continue; // continue to read user input until a valid input is received
+                                                }
+                                            };
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    None => {
+                                        self.clear_screen();
+                                        self.show_stats();
+                                        self.show_hand(&hand);
+                                        println!("==> You've already used this card");
+
+                                        // get next choice
+                                        choice = match self.read_user_input() {
+                                            Ok(choice) => choice,
+                                            Err(error) => {
+                                                println!("Error: {:?}", error);
+                                                continue; // continue to read user input until a valid input is received
+                                            }
+                                        };
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
-        Ok(-1)
     }
 
     fn read_user_input(&self) -> io::Result<Choice> {
         // show prompt to user
-        println!("Enter the card number [1-4] to select it - to quit the game, enter 0:");
+        println!("Enter the card number [1-4] to select it - to quit the game, enter q:");
+        println!("If applicable, you may avoid the room by entering 0");
 
         // block for user input, until user hits enter
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
 
-        // parse the user input
-        let result = input
-            .trim()
-            .parse::<u8>()
-            .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "is not a valid u8"));
-
-        TryInto::<Choice>::try_into(result?)
+        TryInto::<Choice>::try_into(input.as_ref())
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
+    }
+
+    fn show_hand(&self, hand: &Hand) {
+        println!("You drew these cards: ");
+        println!("{hand}\n");
     }
 
     fn clear_screen(&self) {
@@ -150,13 +236,65 @@ impl Game {
         print!("\x1B[2J\x1B[1;1H");
         io::stdout().flush().ok();
     }
+
+    fn show_stats(&self) {
+        println!("{}", self.game_state);
+    }
+
+    fn end_game(&self, hand: Hand) -> io::Result<GameScore> {
+        self.clear_screen();
+        println!("Game ended!\n");
+        // TODO: fetch the actual score from the GameState, and return it
+
+        if self.game_state.life == 0 {
+            println!("You died!\n");
+            let total_strength_of_monsters_left_in_deck = self
+                .game_state
+                .deck
+                .iter()
+                .map(|card| {
+                    match card {
+                        // if the card is a monster, add its strength
+                        Card {
+                            suite: Suite::Spade | Suite::Club,
+                            rank: _,
+                        } => card.rank.get_value() as i32,
+                        _ => 0,
+                    }
+                })
+                .fold(0, |total, elem| total + elem);
+            Ok(GameScore(Some(-total_strength_of_monsters_left_in_deck)))
+        } else {
+                if hand.num_cards_remaining() == 1
+            {
+                // TODO: we can simplify this for sure
+                let bonus_score = hand.iter()
+                    .filter_map(|slot| slot.as_ref())
+                    .filter(|card| card.suite == Suite::Hearts)
+                    .map(|card| card.rank.get_value())
+                    .take(1)
+                    .fold(0, |total, curr| total + curr);
+
+                let score = self.game_state.life as usize + bonus_score;
+                Ok(GameScore(Some(score as i32)))
+            } else {
+               Ok(GameScore(Some(self.game_state.life as i32)))
+            }
+        }
+    }
+
+    fn exit_game(&self) -> io::Result<GameScore> {
+        self.clear_screen();
+        println!("Exiting the game...\n");
+        Ok(GameScore(None)) // return a game score of None as the user has exited the game
+    }
 }
 
 struct GameState {
     deck: Deck,
     life: u8,
     equipped_weapon: Option<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to equip Diamond cards
-    blocked_damage: u8,
+    blocked_creatures: Option<Vec<Card>>, // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
 }
 
 impl GameState {
@@ -165,7 +303,7 @@ impl GameState {
             deck: Deck::default(),
             life: 20,
             equipped_weapon: None,
-            blocked_damage: 0,
+            blocked_creatures: None,
         }
     }
 
@@ -181,9 +319,11 @@ impl GameState {
         hand
     }
 
-    fn put_back_cards(&mut self, cards: Vec<Card>) {
-        for card in cards {
-            self.deck.insert_card(card);
+    fn put_back_cards(&mut self, hand: &mut Hand) {
+        for slot in hand.iter_mut() {
+            if let Some(card) = slot.take() {
+                self.deck.insert_card(card);
+            }
         }
     }
 }

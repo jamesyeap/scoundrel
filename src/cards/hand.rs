@@ -1,6 +1,6 @@
 use crate::cards::deck::Card;
-use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::slice::{Iter,IterMut};
 
 /// Represents a hand of cards that are drawn from the deck
 #[derive(Debug)]
@@ -53,5 +53,13 @@ impl Hand {
 
     pub fn num_cards_remaining(&self) -> usize {
         self.num_cards
+    }
+
+    pub fn iter_mut(&'_ mut self) -> IterMut<'_, Option<Card>>  {
+        self.cards.iter_mut()
+    }
+
+    pub fn iter(&'_ self) -> Iter<'_, Option<Card>>  {
+        self.cards.iter()
     }
 }
