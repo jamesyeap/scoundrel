@@ -45,8 +45,10 @@ impl Game {
 
     /// returns the score at the end of the game
     pub fn start_game(&mut self) -> io::Result<GameScore> {
+        let mut hand = Hand::new();
+
         loop {
-            let mut hand = self.game_state.draw_cards(4);
+            hand = self.game_state.draw_cards(hand, 4);
 
             /* check for game ending conditions */
             // if we can no longer draw 4 cards, the game ends
@@ -378,10 +380,10 @@ impl GameState {
         }
     }
 
-    fn draw_cards(&mut self, number_of_cards: usize) -> Hand {
-        let mut hand = Hand::new();
+    fn draw_cards(&mut self, mut hand: Hand, hand_size: usize) -> Hand {
+        let number_of_cards_to_draw = hand_size - hand.num_cards_remaining();
 
-        for _ in 0..number_of_cards {
+        for _ in 0..number_of_cards_to_draw {
             if let Some(card) = self.deck.draw_card() {
                 hand.add_card(card);
             }

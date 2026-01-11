@@ -33,7 +33,11 @@ impl Hand {
     }
 
     pub fn add_card(&mut self, card: Card) {
-        self.cards.push(Some(card));
+        if let Some(empty_slot) = self.cards.iter_mut().find(|slot| slot.is_none()) {
+            *empty_slot = Some(card);
+        } else {
+            self.cards.push(Some(card));
+        }
         self.num_cards += 1;
     }
 
