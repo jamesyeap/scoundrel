@@ -297,7 +297,7 @@ impl Game {
     }
 
     fn show_hand(&self, hand: &Hand) {
-        println!("You drew these cards: ");
+        println!("Your hand: ");
         println!("{hand}\n");
     }
 
