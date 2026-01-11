@@ -317,8 +317,6 @@ impl Game {
     fn end_game(&self, hand: Hand) -> io::Result<GameScore> {
         self.clear_screen();
         println!("Game ended!\n");
-        // TODO: fetch the actual score from the GameState, and return it
-
         if self.game_state.life == 0 {
             println!("You died!\n");
             let total_strength_of_monsters_left_in_deck = self
