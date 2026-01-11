@@ -16,6 +16,15 @@ use std::io::{Write, stdout};
 #[derive(Debug)]
 pub struct GameScore(Option<i32>);
 
+impl Display for GameScore {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            Some(score) => write!(f, "Score: {score}"),
+            None => write!(f, ""),
+        }
+    }
+}
+
 pub struct Game {
     game_state: GameState,
 }
@@ -155,7 +164,8 @@ impl Game {
                                                     self.game_state.equipped_weapon.as_ref()
                                                     && self
                                                         .game_state
-                                                        .blocked_creatures.0
+                                                        .blocked_creatures
+                                                        .0
                                                         .last()
                                                         .map_or_else(
                                                             || true,
@@ -195,7 +205,8 @@ impl Game {
                                                                     // track list of creatures that were blocked
                                                                     self.game_state
                                                                         .blocked_creatures
-                                                                        .0.push(card);
+                                                                        .0
+                                                                        .push(card);
                                                                 }
                                                                 FIGHT_WITH_WEAPON(false) => {
                                                                     // bare-knuckle
@@ -420,7 +431,12 @@ struct BlockedCreatures(Vec<Card>); // TODO: how can we make invalid states unre
 
 impl Display for BlockedCreatures {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let message = self.0.iter().map(|card| card.to_string()).collect::<Vec<_>>().join(", ");
+        let message = self
+            .0
+            .iter()
+            .map(|card| card.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
         write!(f, "{message}")
     }
 }

@@ -8,6 +8,6 @@ fn main() {
     
     let score = game.start_game();
     if let Ok(game_score) = score {
-        println!("Your score: {:?}", game_score);
+        println!("{game_score}");
     }
 }
