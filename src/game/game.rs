@@ -1,8 +1,8 @@
-use std::cmp::PartialEq;
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use crate::game::choice::Choice::FIGHT_WITH_WEAPON;
+use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::Write;
