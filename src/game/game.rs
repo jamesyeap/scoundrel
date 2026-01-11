@@ -286,14 +286,6 @@ impl Game {
                 }
                 FIGHT_WITH_WEAPON(_) => {
                     println!("Invalid input!");
-                    // get next choice
-                    choice = match self.read_user_input() {
-                        Ok(choice) => choice,
-                        Err(error) => {
-                            println!("Error: {:?}", error);
-                            continue; // continue to read user input until a valid input is received
-                        }
-                    };
                 }
             }
         }
@@ -337,8 +329,8 @@ impl Game {
                         match choice {
                             Ok(FIGHT_WITH_WEAPON(_)) => {
                                 disable_raw_mode()?;
-                                return choice
-                            },
+                                return choice;
+                            }
                             _ => {
                                 println!("Please select enter either y/n");
                             }
