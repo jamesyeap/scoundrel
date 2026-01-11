@@ -2,7 +2,11 @@ use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use crate::game::choice::Choice::FIGHT_WITH_WEAPON;
-use std::cmp::PartialEq;
+use crossterm::event::KeyModifiers;
+use crossterm::{
+    event::{KeyCode, read},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::Write;
@@ -286,24 +290,44 @@ impl Game {
         println!("Enter the card number [1-4] to select it - to quit the game, enter q:");
         println!("If applicable, you may avoid the room by entering 0");
 
-        // block for user input, until user hits enter
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-
-        TryInto::<Choice>::try_into(input.as_ref())
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
+        enable_raw_mode()?;
+        loop {
+            match read() {
+                Ok(event) => {
+                    if let Some(event) = event.as_key_event() {
+                        disable_raw_mode()?;
+                        return TryInto::<Choice>::try_into(event)
+                            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error));
+                    }
+                }
+                Err(error) => {
+                    disable_raw_mode()?;
+                    return Err(io::Error::new(io::ErrorKind::InvalidInput, error));
+                }
+            }
+        }
     }
 
     fn read_user_input_for_combat_choice(&self) -> io::Result<Choice> {
         // show prompt to user
         println!("Use weapon? [y/n]");
 
-        // block for user input, until user hits enter
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-
-        TryInto::<Choice>::try_into(input.as_ref())
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))
+        enable_raw_mode()?;
+        loop {
+            match read() {
+                Ok(event) => {
+                    if let Some(event) = event.as_key_event() {
+                        disable_raw_mode()?;
+                        return TryInto::<Choice>::try_into(event)
+                            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error));
+                    }
+                }
+                Err(error) => {
+                    disable_raw_mode()?;
+                    return Err(io::Error::new(io::ErrorKind::InvalidInput, error));
+                }
+            }
+        }
     }
 
     fn show_hand(&self, hand: &Hand) {
