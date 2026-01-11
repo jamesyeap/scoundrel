@@ -2,9 +2,8 @@ use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use crate::game::choice::Choice::FIGHT_WITH_WEAPON;
-use crossterm::event::KeyModifiers;
 use crossterm::{
-    event::{KeyCode, read},
+    event::read,
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 use std::fmt::{Display, Formatter};

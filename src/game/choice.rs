@@ -48,24 +48,3 @@ impl TryFrom<KeyEvent> for Choice {
         }
     }
 }
-
-impl TryFrom<&str> for Choice {
-    type Error = ChoiceParseError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let trimmed_value = value.trim();
-        match trimmed_value {
-            "q" => Ok(Self::EXIT),
-            "0" => Ok(Self::RUN),
-            "y" => Ok(Self::FIGHT_WITH_WEAPON(true)),
-            "n" => Ok(Self::FIGHT_WITH_WEAPON(false)),
-            "1" | "2" | "3" | "4" => {
-                let card_num = trimmed_value
-                    .parse::<u8>()
-                    .map_err(|_| ChoiceParseError::INVALID_OPTION(value.into()))?;
-                Ok(Self::OPTION(card_num))
-            }
-            _ => Err(ChoiceParseError::INVALID_OPTION(value.into())),
-        }
-    }
-}
