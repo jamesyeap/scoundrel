@@ -272,14 +272,28 @@ impl Game {
                             }
                             FIGHT_WITH_WEAPON(_) => {
                                 println!("Invalid input!");
-                                continue; // continue to read user input until a valid input is received
+                                // get next choice
+                                choice = match self.read_user_input() {
+                                    Ok(choice) => choice,
+                                    Err(error) => {
+                                        println!("Error: {:?}", error);
+                                        continue; // continue to read user input until a valid input is received
+                                    }
+                                };
                             }
                         }
                     }
                 }
                 FIGHT_WITH_WEAPON(_) => {
                     println!("Invalid input!");
-                    continue; // continue to read user input until a valid input is received
+                    // get next choice
+                    choice = match self.read_user_input() {
+                        Ok(choice) => choice,
+                        Err(error) => {
+                            println!("Error: {:?}", error);
+                            continue; // continue to read user input until a valid input is received
+                        }
+                    };
                 }
             }
         }
@@ -317,9 +331,18 @@ impl Game {
             match read() {
                 Ok(event) => {
                     if let Some(event) = event.as_key_event() {
-                        disable_raw_mode()?;
-                        return TryInto::<Choice>::try_into(event)
+                        let choice = TryInto::<Choice>::try_into(event)
                             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error));
+
+                        match choice {
+                            Ok(FIGHT_WITH_WEAPON(_)) => {
+                                disable_raw_mode()?;
+                                return choice
+                            },
+                            _ => {
+                                println!("Please select enter either y/n");
+                            }
+                        }
                     }
                 }
                 Err(error) => {
