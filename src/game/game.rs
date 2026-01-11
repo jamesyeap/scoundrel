@@ -31,7 +31,7 @@ impl Display for GameState {
         if let Some(weapon) = self.equipped_weapon.as_ref() {
             write!(f, "Equipped weapon: {weapon}\n")
                 .expect("Failed to write equipped weapon to display.");
-            write!(f, "Blocked creatures: {:?}\n", self.blocked_creatures)
+            write!(f, "Blocked creatures: {}\n", self.blocked_creatures)
                 .expect("Failed to write blocked creatures to display");
         };
         write!(
@@ -145,7 +145,7 @@ impl Game {
                                                 rank: _,
                                             } => {
                                                 self.game_state.equipped_weapon = Some(card);
-                                                self.game_state.blocked_creatures.clear(); // reset list of blocked creatures to None
+                                                self.game_state.blocked_creatures.0.clear(); // reset list of blocked creatures to None
                                             }
                                             Card {
                                                 suite: Suite::Spade | Suite::Club,
@@ -155,7 +155,7 @@ impl Game {
                                                     self.game_state.equipped_weapon.as_ref()
                                                     && self
                                                         .game_state
-                                                        .blocked_creatures
+                                                        .blocked_creatures.0
                                                         .last()
                                                         .map_or_else(
                                                             || true,
@@ -195,7 +195,7 @@ impl Game {
                                                                     // track list of creatures that were blocked
                                                                     self.game_state
                                                                         .blocked_creatures
-                                                                        .push(card);
+                                                                        .0.push(card);
                                                                 }
                                                                 FIGHT_WITH_WEAPON(false) => {
                                                                     // bare-knuckle
@@ -416,12 +416,21 @@ impl Game {
     }
 }
 
+struct BlockedCreatures(Vec<Card>); // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
+
+impl Display for BlockedCreatures {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let message = self.0.iter().map(|card| card.to_string()).collect::<Vec<_>>().join(", ");
+        write!(f, "{message}")
+    }
+}
+
 struct GameState {
     deck: Deck,
     life: u8,
     has_avoided_room: bool,
     equipped_weapon: Option<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to equip Diamond cards
-    blocked_creatures: Vec<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
+    blocked_creatures: BlockedCreatures,
 }
 
 impl GameState {
@@ -431,7 +440,7 @@ impl GameState {
             life: 20,
             has_avoided_room: false,
             equipped_weapon: None,
-            blocked_creatures: Vec::new(),
+            blocked_creatures: BlockedCreatures(Vec::new()),
         }
     }
 

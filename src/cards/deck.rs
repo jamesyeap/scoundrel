@@ -67,7 +67,7 @@ pub struct Card {
 
 impl Display for Card {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}, {:?}", self.suite, self.rank).expect("Cannot print card to display.");
+        write!(f, "<{:?}, {:?}>", self.suite, self.rank).expect("Cannot print card to display.");
         Ok(())
     }
 }
