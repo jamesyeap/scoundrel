@@ -385,7 +385,6 @@ impl Game {
 
     fn end_game(&self, hand: Hand) -> io::Result<GameScore> {
         self.clear_screen();
-        println!("Game ended!\n");
         if self.game_state.life == 0 {
             println!("You died!\n");
             let total_strength_of_monsters_left_in_deck = self
@@ -405,6 +404,7 @@ impl Game {
                 .fold(0, |total, elem| total + elem);
             Ok(GameScore(Some(-total_strength_of_monsters_left_in_deck)))
         } else {
+            println!("You survived!\n");
             if hand.num_cards_remaining() == 1 {
                 let bonus_score = hand
                     .iter()
