@@ -2,13 +2,16 @@ use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
 use crate::game::choice::Choice::FIGHT_WITH_WEAPON;
+use crossterm::cursor::MoveTo;
+use crossterm::terminal::{Clear, ClearType};
 use crossterm::{
+    QueueableCommand,
     event::read,
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 use std::fmt::{Display, Formatter};
 use std::io;
-use std::io::Write;
+use std::io::{Write, stdout};
 
 #[derive(Debug)]
 pub struct GameScore(Option<i32>);
@@ -317,10 +320,11 @@ impl Game {
         // show prompt to user
         println!("Use weapon? [y/n]");
 
-        enable_raw_mode()?;
         loop {
+            enable_raw_mode()?;
             match read() {
                 Ok(event) => {
+                    disable_raw_mode()?;
                     if let Some(event) = event.as_key_event() {
                         let choice = TryInto::<Choice>::try_into(event)
                             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error));
@@ -349,12 +353,19 @@ impl Game {
         println!("{hand}\n");
     }
 
-    fn clear_screen(&self) {
-        // TODO: use crossterm to clear the screen instead of this, as this might not work on Windows
+    fn clear_screen(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut stdout = stdout();
 
-        // ANSI: clear screen and move cursor to 1;1
-        print!("\x1B[2J\x1B[1;1H");
-        io::stdout().flush().ok();
+        // Queue the clear command
+        stdout.queue(Clear(ClearType::All))?;
+
+        // Optionally, move the cursor to the top-left position (0, 0)
+        stdout.queue(MoveTo(0, 0))?;
+
+        // Execute the queued commands by flushing the buffer
+        stdout.flush()?;
+
+        Ok(())
     }
 
     fn show_stats(&self) {
