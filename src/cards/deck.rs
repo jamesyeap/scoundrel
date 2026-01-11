@@ -1,6 +1,6 @@
 use rand::prelude::*;
 use rand::rng;
-use std::fmt::{Display, Formatter, write};
+use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use std::slice::Iter;
 use strum::IntoEnumIterator;
@@ -106,8 +106,8 @@ impl Deck {
         //         we should not have two copies of a card in a Deck
         self.cards.push(card);
     }
-    
-    pub fn iter(&self) -> Iter<Card> {
+
+    pub fn iter(&'_ self) -> Iter<'_, Card> {
         self.cards.iter()
     }
 }
