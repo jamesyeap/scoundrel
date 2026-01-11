@@ -59,10 +59,6 @@ impl Hand {
         self.num_cards
     }
 
-    pub fn iter_mut(&'_ mut self) -> IterMut<'_, Option<Card>>  {
-        self.cards.iter_mut()
-    }
-
     pub fn iter(&'_ self) -> Iter<'_, Option<Card>>  {
         self.cards.iter()
     }

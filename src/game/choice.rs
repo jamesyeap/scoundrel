@@ -15,6 +15,7 @@ impl std::fmt::Display for ChoiceParseError {
 
 impl std::error::Error for ChoiceParseError {}
 
+#[derive(PartialEq)]
 pub enum Choice {
     OPTION(u8),
     FIGHT_WITH_WEAPON(bool),

@@ -1,3 +1,4 @@
+use std::cmp::PartialEq;
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
 use crate::game::choice::Choice;
@@ -66,7 +67,14 @@ impl Game {
             self.show_hand(&hand);
 
             let mut choice = match self.read_user_input() {
-                Ok(choice) => choice,
+                Ok(choice) => {
+                    if choice == Choice::RUN && self.game_state.has_avoided_room {
+                        println!("Cannot avoid two rooms in a room!");
+                        continue; // continue to read user input until a valid input is received
+                    } else {
+                        choice
+                    }
+                }
                 Err(error) => {
                     println!("Error: {:?}", error);
                     continue; // continue to read user input until a valid input is received
@@ -82,11 +90,13 @@ impl Game {
                     println!(
                         "You chose to run from the room! Shuffling cards back into the deck..."
                     );
+                    self.game_state.has_avoided_room = true;
                     self.game_state.put_back_cards(&mut hand);
                     continue;
                 }
 
                 Choice::OPTION(_) => {
+                    self.game_state.has_avoided_room = false;
                     loop {
                         match choice {
                             Choice::EXIT => {
@@ -363,6 +373,7 @@ impl Game {
 struct GameState {
     deck: Deck,
     life: u8,
+    has_avoided_room: bool,
     equipped_weapon: Option<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to equip Diamond cards
     blocked_creatures: Vec<Card>, // TODO: how can we make invalid states unrepresentable -> we should only be able to store creature cards here (Club and Spade cards)
 }
@@ -372,6 +383,7 @@ impl GameState {
         GameState {
             deck: Deck::default(),
             life: 20,
+            has_avoided_room: false,
             equipped_weapon: None,
             blocked_creatures: Vec::new(),
         }
@@ -390,8 +402,10 @@ impl GameState {
     }
 
     fn put_back_cards(&mut self, hand: &mut Hand) {
-        for slot in hand.iter_mut() {
-            if let Some(card) = slot.take() {
+        // TODO: this is currently hardcoded to a handsize of 4 - refactor this
+        for idx in 0..4 {
+            let card_num = idx + 1;
+            if let Some(card) = hand.remove_card(card_num) {
                 self.deck.insert_card(card);
             }
         }
