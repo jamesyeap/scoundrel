@@ -1,4 +1,4 @@
-//! Play Scoundrel in your command-line interface.
+//! Play Scoundrel on your CLI.
 
 mod cards;
 mod game;
