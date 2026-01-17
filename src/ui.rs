@@ -8,8 +8,22 @@ use ratatui::{DefaultTerminal, Frame};
 
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
+        CurrentScreen::Welcome => {
+            let block = Block::default().borders(Borders::ALL).title("Scoundrel");
+
+            let welcome_message = Paragraph::new(Text::styled(
+                "Welcome! Press any button to continue; or press (q) to quit.",
+                Style::default().fg(Color::Green),
+            ))
+            .block(block);
+
+            frame.render_widget(welcome_message, frame.area());
+        }
+
         CurrentScreen::BeforeRoom => {
-            let block = Block::default().borders(Borders::ALL).title("Avoid room? (y/n)");
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .title("Enter room? (y/n)");
 
             let mut list_items = Vec::new();
             for card in app.hand.iter() {
@@ -66,11 +80,21 @@ pub fn ui(frame: &mut Frame, app: &App) {
             let weapon = Paragraph::new(Text::styled(
                 format!("{}", app.equipped_weapon.as_ref().unwrap()),
                 Style::default().fg(Color::Blue),
-            )).block(Block::default().borders(Borders::ALL).title_bottom("Your equipped weapon"));
+            ))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title_bottom("Your equipped weapon"),
+            );
             let creature = Paragraph::new(Text::styled(
                 format!("{}", app.in_combat_with_creature.as_ref().unwrap()),
                 Style::default().fg(Color::Blue),
-            )).block(Block::default().borders(Borders::ALL).title_bottom("Creature"));
+            ))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title_bottom("Creature"),
+            );
 
             frame.render_widget(weapon, chunks[0]);
             frame.render_widget(creature, chunks[1]);

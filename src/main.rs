@@ -2,10 +2,10 @@
 
 extern crate core;
 
-use crate::app::{App, CurrentScreen};
+use crate::app::{App, CurrentScreen, HAND_SIZE};
 use crate::ui::ui;
 use crossterm::event::KeyEventKind::Press;
-use crossterm::event::{Event, KeyCode, read};
+use crossterm::event::{Event, KeyCode, read, KeyEventKind};
 use ratatui::DefaultTerminal;
 
 mod app;
@@ -31,26 +31,39 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
     loop {
         terminal.draw(|frame| ui(frame, &app))?;
 
-        if let Ok(Event::Key(key)) = read()
-            && key.kind == Press
-        {
-            match app.current_screen {
-                CurrentScreen::BeforeRoom => {
-                    if app.has_avoided_room {
-                        app.current_screen = CurrentScreen::ChooseCard;
+        match app.current_screen {
+            CurrentScreen::Welcome => {
+                if let Event::Key(key) = read()? && key.kind == KeyEventKind::Press {
+                    match key.code {
+                        KeyCode::Char('q') => return Ok(()),
+                        _ => {
+                            app.current_screen = CurrentScreen::BeforeRoom;
+                            app.draw_cards(HAND_SIZE);
+                        }
                     }
+                }
+            }
 
+            CurrentScreen::BeforeRoom => {
+                if app.has_avoided_room {
+                    app.current_screen = CurrentScreen::ChooseCard;
+                    continue;
+                }
+
+                if let Event::Key(key) = read()? && key.kind == KeyEventKind::Press {
                     match key.code {
                         // user chooses to enter room
                         KeyCode::Char('y') => {
-                            // draw new cards, and let the user choose the cards
-                            app.draw_cards(4);
                             app.current_screen = CurrentScreen::ChooseCard;
                         }
 
                         // user avoids room
                         KeyCode::Char('n') => {
+                            // draw new cards
                             app.put_back_cards();
+                            app.draw_cards(HAND_SIZE);
+                            app.has_avoided_room = true;
+
                             app.current_screen = CurrentScreen::BeforeRoom;
                         }
 
@@ -61,8 +74,10 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                         _ => {}
                     }
                 }
+            }
 
-                CurrentScreen::ChooseCard => {
+            CurrentScreen::ChooseCard => {
+                if let Event::Key(key) = read()? && key.kind == KeyEventKind::Press {
                     match key.code {
                         KeyCode::Char(c @ ('1' | '2' | '3' | '4')) => {
                             // safe to use unwrap, and to cast to usize, as we know the input is always 1, 2, 3 or 4
@@ -84,15 +99,19 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                         }
                         _ => {}
                     }
+                }
 
-                    if app.hand.num_cards_remaining() == 1 {
-                        app.has_avoided_room = false;
-                        app.current_screen = CurrentScreen::BeforeRoom;
-                        continue;
-                    }
-                },
+                if app.hand.num_cards_remaining() == 1 {
+                    app.has_avoided_room = false;
+                    app.current_screen = CurrentScreen::BeforeRoom;
+                    app.draw_cards(HAND_SIZE);
+                    continue;
+                }
+            }
 
-                CurrentScreen::ChooseWeaponOrBareKnuckle => {
+            CurrentScreen::ChooseWeaponOrBareKnuckle => {
+
+                if let Event::Key(key) = read()? && key.kind == KeyEventKind::Press {
                     let next_screen = match key.code {
                         KeyCode::Char('y') => {
                             app.fight_creature_with_weapon()
@@ -108,10 +127,10 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                     match next_screen {
                         Ok(Some(next_screen)) => {
                             app.current_screen = next_screen;
-                        },
+                        }
                         Err(error) => {
                             // TODO: display error in a popup, or in the status bar
-                        },
+                        }
                         _ => {
                             // default transition
                             if app.hand.num_cards_remaining() == 1 {
@@ -123,8 +142,8 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                         }
                     }
                 }
-                _ => {}
             }
+            _ => {}
         }
     }
 }

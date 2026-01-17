@@ -5,9 +5,11 @@ use color_eyre::eyre::bail;
 
 // CONSTANTS
 const MAX_LIFE: u8 = 20;
-const HAND_SIZE: usize = 4;
+pub const HAND_SIZE: usize = 4;
 
 pub enum CurrentScreen {
+    Welcome,
+    
     Menu,
     Exiting,
 
@@ -34,7 +36,7 @@ pub struct App {
 impl App {
     fn new() -> App {
         App {
-            current_screen: CurrentScreen::BeforeRoom, // TODO: change this to CurrentScreen::Menu
+            current_screen: CurrentScreen::Welcome, // TODO: change this to CurrentScreen::Menu
             deck: Deck::default(),
             hand: Hand::new(),
             life: 0u8,
