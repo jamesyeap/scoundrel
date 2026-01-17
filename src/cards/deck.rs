@@ -67,7 +67,65 @@ pub struct Card {
 
 impl Display for Card {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // human-friendly short rank
+        let rank_str = match self.rank {
+            Rank::Two => "2",
+            Rank::Three => "3",
+            Rank::Four => "4",
+            Rank::Five => "5",
+            Rank::Six => "6",
+            Rank::Seven => "7",
+            Rank::Eight => "8",
+            Rank::Nine => "9",
+            Rank::Ten => "10",
+            Rank::Jack => "J",
+            Rank::Queen => "Q",
+            Rank::King => "K",
+            Rank::Ace => "A",
+        };
+
+        // base code point per suit in the Unicode Playing Cards block
+        let base = match self.suite {
+            Suite::Spade => 0x1F0A0,
+            Suite::Heart => 0x1F0B0,
+            Suite::Diamond => 0x1F0C0,
+            Suite::Club => 0x1F0D0,
+        };
+
+        // offsets for ranks in the block. Note: the 'knight' (0xC) exists in Unicode but
+        // not in a standard 52-card deck, so we skip that slot for queen/king.
+        let offset = match self.rank {
+            Rank::Ace => 0x1,
+            Rank::Two => 0x2,
+            Rank::Three => 0x3,
+            Rank::Four => 0x4,
+            Rank::Five => 0x5,
+            Rank::Six => 0x6,
+            Rank::Seven => 0x7,
+            Rank::Eight => 0x8,
+            Rank::Nine => 0x9,
+            Rank::Ten => 0xA,
+            Rank::Jack => 0xB,
+            // 0xC is the 'Knight' (tarot); skip it
+            Rank::Queen => 0xD,
+            Rank::King => 0xE,
+        };
+
+        let codepoint = base + offset;
+        let glyph = std::char::from_u32(codepoint).unwrap_or('\u{FFFD}');
+
+        let suite_name = match self.suite {
+            Suite::Spade => "spades",
+            Suite::Heart => "hearts",
+            Suite::Diamond => "diamonds",
+            Suite::Club => "clubs",
+        };
+
+        // write!(f, "{} of {} {}", rank_str, suite_name, glyph)
+        // write!(f, "{glyph}")
+        // write!(f, "🂢")
         write!(f, "<{:?}, {:?}>", self.suite, self.rank).expect("Cannot print card to display.");
+
         Ok(())
     }
 }
