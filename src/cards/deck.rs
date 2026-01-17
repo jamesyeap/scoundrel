@@ -15,7 +15,7 @@ pub enum Suite {
     Spade,
     Club,
     Diamond,
-    Hearts,
+    Heart,
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
