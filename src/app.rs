@@ -7,9 +7,10 @@ use color_eyre::eyre::bail;
 const MAX_LIFE: u8 = 20;
 pub const HAND_SIZE: usize = 4;
 
+#[derive(Eq, PartialEq)]
 pub enum CurrentScreen {
     Welcome,
-    
+
     Menu,
     Exiting,
 
@@ -17,6 +18,9 @@ pub enum CurrentScreen {
     ChooseCard,
     ChooseWeaponOrBareKnuckle,
     ExitingRound,
+
+    Won,
+    Lost,
 }
 
 // holds the state
@@ -39,7 +43,7 @@ impl App {
             current_screen: CurrentScreen::Welcome, // TODO: change this to CurrentScreen::Menu
             deck: Deck::default(),
             hand: Hand::new(),
-            life: 0u8,
+            life: 20u8,
             has_avoided_room: false,
             equipped_weapon: None,
             blocked_creatures: Vec::new(),
@@ -126,7 +130,6 @@ impl App {
         } else {
             // TODO: remove duplicate
             self.in_combat_with_creature = Some(card);
-
             self.fight_creature_bare_knuckle()
         }
     }
@@ -142,10 +145,15 @@ impl App {
         // update life points
         self.life = self.life.saturating_sub(damage_to_take as u8);
 
-        // track list of creatures that were blocked
-        self.blocked_creatures.push(creature);
+        if self.life == 0 {
+            // if life points remaining after this encounter is 0, player has lost the game
+            Ok(Some(CurrentScreen::Lost))
+        } else {
+            // track list of creatures that were blocked
+            self.blocked_creatures.push(creature);
 
-        Ok(None)
+            Ok(None)
+        }
     }
 
     pub fn fight_creature_bare_knuckle(&mut self) -> eyre::Result<Option<CurrentScreen>> {
@@ -153,7 +161,13 @@ impl App {
         // subtract life points
         let creature = self.in_combat_with_creature.take().unwrap();
         self.life = self.life.saturating_sub(creature.rank.get_value() as u8);
-        Ok(None)
+
+        if self.life == 0 {
+            // if life points remaining after this encounter is 0, player has lost the game
+            Ok(Some(CurrentScreen::Lost))
+        } else {
+            Ok(None)
+        }
     }
 }
 

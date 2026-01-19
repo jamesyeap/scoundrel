@@ -165,6 +165,10 @@ impl Deck {
         self.cards.push(card);
     }
 
+    pub fn len(&self) -> usize {
+        self.cards.len()
+    }
+
     pub fn iter(&'_ self) -> Iter<'_, Card> {
         self.cards.iter()
     }
