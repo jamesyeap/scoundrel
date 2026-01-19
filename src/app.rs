@@ -1,5 +1,6 @@
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
+use crate::game::game::GameScore;
 use color_eyre::eyre;
 use color_eyre::eyre::bail;
 
@@ -190,6 +191,43 @@ impl App {
             Ok(Some(CurrentScreen::Lost))
         } else {
             Ok(None)
+        }
+    }
+
+    // used to calculate score at the end of the game
+    pub fn calculate_score(&self) -> i32 {
+        if self.life > 0 {
+            let score = if self.hand.num_cards_remaining() == 1 {
+                let bonus_score = self
+                    .hand
+                    .iter()
+                    .filter_map(|slot| slot.as_ref())
+                    .find(|card| card.suite == Suite::Heart)
+                    .map_or_else(|| 0, |card| card.rank.get_value());
+
+                self.life + (bonus_score as u8)
+            } else {
+                self.life
+            };
+
+            score as i32
+        } else {
+            let total_strength_of_monsters_left_in_deck = self
+                .deck
+                .iter()
+                .map(|card| {
+                    match card {
+                        // if the card is a monster, add its strength
+                        Card {
+                            suite: Suite::Spade | Suite::Club,
+                            rank: _,
+                        } => card.rank.get_value() as i32,
+                        _ => 0,
+                    }
+                })
+                .fold(0, |total, elem| total + elem);
+
+            -total_strength_of_monsters_left_in_deck
         }
     }
 

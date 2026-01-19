@@ -17,16 +17,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
             frame.render_widget(welcome_message, frame.area());
         }
-
-        CurrentScreen::Lost => {
-            let lost_message = Paragraph::new(Text::styled(
-                "You died!",
-                Style::default().fg(Color::Green),
-            ));
-
-            frame.render_widget(lost_message, frame.area());
-        }
-
+        
         CurrentScreen::BeforeRoom => {
             let block = Block::default()
                 .title("Enter room? (y/n)")
@@ -115,6 +106,24 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
             frame.render_widget(weapon, chunks[0]);
             frame.render_widget(creature, chunks[1]);
+        }
+
+        CurrentScreen::Won => {
+            let won_message = Paragraph::new(Text::styled(
+                format!("You survived!\n Your score: {}", app.calculate_score()),
+                Style::default().fg(Color::Green),
+            ));
+
+            frame.render_widget(won_message, frame.area());
+        }
+
+        CurrentScreen::Lost => {
+            let lost_message = Paragraph::new(Text::styled(
+                format!("You died!\n Your score: {}", app.calculate_score()),
+                Style::default().fg(Color::Green),
+            ));
+
+            frame.render_widget(lost_message, frame.area());
         }
 
         _ => {}

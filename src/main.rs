@@ -91,12 +91,13 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                                 match app.handle_card(card) {
                                     Ok(Some(next_screen)) => app.current_screen = next_screen,
                                     Err(error) => {
-                                        // TODO: display error in a popup, or in the status bar
+                                        app.notifications.push(error.to_string());
                                     }
                                     _ => {}
                                 }
                             } else {
-                                // TODO: display warning that the card at the selected idx has already been used
+                                app.notifications
+                                    .push("Card has already been used!".to_string());
                             }
                         }
                         KeyCode::Char('q') => {
@@ -106,7 +107,7 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                     }
                 }
 
-                // TODO: this is not good design, refactor this
+                // TODO: refactor this: this is not good design, as we should not have to care about what the current screen is
                 if app.current_screen != CurrentScreen::ChooseWeaponOrBareKnuckle {
                     if app.hand.num_cards_remaining() == 1 {
                         app.has_avoided_room = false;
@@ -134,7 +135,7 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                             app.current_screen = next_screen;
                         }
                         Err(error) => {
-                            // TODO: display error in a popup, or in the status bar
+                            app.notifications.push(error.to_string());
                         }
                         _ => {
                             // default transition
