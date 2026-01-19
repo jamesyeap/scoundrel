@@ -1,6 +1,5 @@
 use crate::cards::deck::{Card, Deck, Suite, Value};
 use crate::cards::hand::Hand;
-use crate::game::game::GameScore;
 use color_eyre::eyre;
 use color_eyre::eyre::bail;
 
