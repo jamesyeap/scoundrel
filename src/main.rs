@@ -1,13 +1,15 @@
 //! Play Scoundrel on your CLI.
 
+extern crate core;
+
+use crate::game::run_game::run_game;
+
+mod app;
 mod cards;
 mod game;
+mod ui;
 
-fn main() {
-    let mut game = game::game::Game::new();
-    
-    let score = game.start_game();
-    if let Ok(game_score) = score {
-        println!("{game_score}");
-    }
+fn main() -> color_eyre::Result<()> {
+    ratatui::run(run_game)?;
+    Ok(())
 }

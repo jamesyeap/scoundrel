@@ -12,7 +12,7 @@ use crossterm::{
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::{Write, stdout};
-
+#[deprecated(since="0.2.0", note="please use `run_game` instead")]
 #[derive(Debug)]
 pub struct GameScore(Option<i32>);
 
@@ -141,7 +141,7 @@ impl Game {
 
                                         match card {
                                             Card {
-                                                suite: Suite::Hearts,
+                                                suite: Suite::Heart,
                                                 rank: _,
                                             } => {
                                                 self.game_state.life = self
@@ -409,7 +409,7 @@ impl Game {
                 let bonus_score = hand
                     .iter()
                     .filter_map(|slot| slot.as_ref())
-                    .find(|card| card.suite == Suite::Hearts)
+                    .find(|card| card.suite == Suite::Heart)
                     .map_or_else(|| 0, |card| card.rank.get_value());
 
                 let score = self.game_state.life as usize + bonus_score;

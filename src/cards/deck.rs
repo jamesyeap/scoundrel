@@ -15,7 +15,7 @@ pub enum Suite {
     Spade,
     Club,
     Diamond,
-    Hearts,
+    Heart,
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
@@ -67,8 +67,7 @@ pub struct Card {
 
 impl Display for Card {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<{:?}, {:?}>", self.suite, self.rank).expect("Cannot print card to display.");
-        Ok(())
+        write!(f, "<{:?}, {:?}>", self.suite, self.rank)
     }
 }
 
@@ -105,6 +104,10 @@ impl Deck {
         // TODO: check if card already exists in deck before inserting it
         //         we should not have two copies of a card in a Deck
         self.cards.push(card);
+    }
+
+    pub fn len(&self) -> usize {
+        self.cards.len()
     }
 
     pub fn iter(&'_ self) -> Iter<'_, Card> {
