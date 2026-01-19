@@ -72,7 +72,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         }
 
         CurrentScreen::ChooseWeaponOrBareKnuckle => {
-            let popup_area = centered_rec(70, 50, frame.area());
+            let popup_area = centered_rect(70, 50, frame.area());
 
             let block = Block::default()
                 .borders(Borders::ALL)
