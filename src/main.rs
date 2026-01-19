@@ -108,13 +108,8 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                 }
 
                 // TODO: refactor this: this is not good design, as we should not have to care about what the current screen is
-                if app.current_screen != CurrentScreen::ChooseWeaponOrBareKnuckle {
-                    if app.hand.num_cards_remaining() == 1 {
-                        app.has_avoided_room = false;
-                        app.draw_cards(HAND_SIZE);
-                        app.current_screen = CurrentScreen::BeforeRoom;
-                        continue;
-                    }
+                if app.current_screen != CurrentScreen::ChooseWeaponOrBareKnuckle && app.current_screen != CurrentScreen::Lost {
+                    draw_cards_or_end_game(&mut app);
                 }
             }
 
@@ -139,18 +134,27 @@ fn start(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                         }
                         _ => {
                             // default transition
-                            if app.hand.num_cards_remaining() == 1 {
-                                app.has_avoided_room = false;
-                                app.draw_cards(HAND_SIZE);
-                                app.current_screen = CurrentScreen::BeforeRoom;
-                            } else {
-                                app.current_screen = CurrentScreen::ChooseCard;
-                            }
+                            draw_cards_or_end_game(&mut app);
                         }
                     }
                 }
             }
             _ => {}
         }
+    }
+}
+
+fn draw_cards_or_end_game(app: &mut App) {
+    if app.hand.num_cards_remaining() == 1 {
+        app.has_avoided_room = false;
+        let enough_cards_left_in_deck = app.draw_cards(HAND_SIZE);
+        if !enough_cards_left_in_deck {
+            // end the game if there are not enough cards remaining to play the game
+            app.current_screen = CurrentScreen::Won;
+        } else {
+            app.current_screen = CurrentScreen::BeforeRoom;
+        }
+    } else {
+        app.current_screen = CurrentScreen::ChooseCard;
     }
 }

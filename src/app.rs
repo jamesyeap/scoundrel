@@ -46,7 +46,7 @@ impl App {
             current_screen: CurrentScreen::Welcome, // TODO: change this to CurrentScreen::Menu
             deck: Deck::default(),
             hand: Hand::new(),
-            life: 20u8,
+            life: MAX_LIFE,
             has_avoided_room: false,
             equipped_weapon: None,
             blocked_creatures: Vec::new(),
@@ -55,14 +55,20 @@ impl App {
         }
     }
 
-    pub(crate) fn draw_cards(&mut self, hand_size: usize) {
+    /// Draws cards from the deck up to hand size.
+    /// Returns true if there are enough cards in the deck to draw from, and false otherwise.
+    pub(crate) fn draw_cards(&mut self, hand_size: usize) -> bool {
         let number_of_cards_to_draw = hand_size - self.hand.num_cards_remaining();
 
         for _ in 0..number_of_cards_to_draw {
             if let Some(card) = self.deck.draw_card() {
                 self.hand.add_card(card);
+            } else {
+                return false;
             }
         }
+
+        true
     }
 
     pub fn select_card(&mut self, card_idx: usize) -> Option<Card> {
