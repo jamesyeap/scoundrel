@@ -12,7 +12,7 @@ use crossterm::{
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::{Write, stdout};
-
+#[deprecated(since="0.2.0", note="please use `run_game` instead")]
 #[derive(Debug)]
 pub struct GameScore(Option<i32>);
 
