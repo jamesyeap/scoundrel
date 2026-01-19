@@ -120,12 +120,20 @@ pub fn ui(frame: &mut Frame, app: &App) {
 }
 
 fn render_notifications(frame: &mut Frame, app: &App, area: Rect) {
+    let notification = if let Some(notification) = app.notifications.last() {
+        Paragraph::new(Text::styled(
+            notification,
+            Style::default().fg(Color::LightBlue),
+        ))
+    } else {
+        Paragraph::new(Text::styled(
+            "",
+            Style::default().fg(Color::LightBlue),
+        ))
+    };
+
     // TODO: display actual notifications
-    let notifications = Paragraph::new(Text::styled(
-        "TODO: put notifications here",
-        Style::default().fg(Color::LightBlue),
-    ));
-    frame.render_widget(notifications, area);
+    frame.render_widget(notification, area);
 }
 
 fn render_equipped_weapon(frame: &mut Frame, app: &App, area: Rect) {

@@ -35,6 +35,8 @@ pub struct App {
     pub equipped_weapon: Option<Card>, // should only hold diamond cards
     pub blocked_creatures: Vec<Card>,  // a stack
     pub in_combat_with_creature: Option<Card>, // holds the creature that the user is currently attacking - used when user is choosing whether to fight with weapon, or bare-knuckle
+
+    pub notifications: Vec<String>, // info or alert messages to display to the user
 }
 
 impl App {
@@ -48,6 +50,7 @@ impl App {
             equipped_weapon: None,
             blocked_creatures: Vec::new(),
             in_combat_with_creature: None,
+            notifications: Vec::new(),
         }
     }
 
@@ -103,12 +106,22 @@ impl App {
         let life_points_to_add: u8 = card.rank.get_value().try_into()?;
         self.life = std::cmp::min(self.life.saturating_add(life_points_to_add), MAX_LIFE);
 
+        // display notification
+        self.notifications
+            .push(format!("You gained {life_points_to_add} life points"));
+
         Ok(None)
     }
 
     fn equip_weapon(&mut self, card: Card) -> eyre::Result<Option<CurrentScreen>> {
         self.equipped_weapon = Some(card);
         self.blocked_creatures.clear(); // reset list of blocked creatures to None
+
+        // display notification
+        self.notifications.push(format!(
+            "You equipped: {}",
+            self.equipped_weapon.as_ref().unwrap()
+        ));
 
         Ok(None)
     }
@@ -145,6 +158,9 @@ impl App {
         // update life points
         self.life = self.life.saturating_sub(damage_to_take as u8);
 
+        // display notification
+        self.add_notification(format!("You took {damage_to_take} damage"));
+
         if self.life == 0 {
             // if life points remaining after this encounter is 0, player has lost the game
             Ok(Some(CurrentScreen::Lost))
@@ -158,9 +174,14 @@ impl App {
 
     pub fn fight_creature_bare_knuckle(&mut self) -> eyre::Result<Option<CurrentScreen>> {
         // no suitable weapon equipped, only choice is to bare-knuckle:
-        // subtract life points
         let creature = self.in_combat_with_creature.take().unwrap();
-        self.life = self.life.saturating_sub(creature.rank.get_value() as u8);
+        let damage_to_take = creature.rank.get_value() as u8;
+
+        // subtract life points
+        self.life = self.life.saturating_sub(damage_to_take);
+
+        // display notification
+        self.add_notification(format!("You took {damage_to_take} damage"));
 
         if self.life == 0 {
             // if life points remaining after this encounter is 0, player has lost the game
@@ -168,6 +189,10 @@ impl App {
         } else {
             Ok(None)
         }
+    }
+
+    fn add_notification(&mut self, notification: String) {
+        self.notifications.push(notification);
     }
 }
 

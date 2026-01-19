@@ -4,7 +4,6 @@ extern crate core;
 
 use crate::app::{App, CurrentScreen, HAND_SIZE};
 use crate::ui::ui;
-use crossterm::event::KeyEventKind::Press;
 use crossterm::event::{Event, KeyCode, KeyEventKind, read};
 use ratatui::DefaultTerminal;
 
