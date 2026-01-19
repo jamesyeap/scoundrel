@@ -257,7 +257,7 @@ pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
         });
 }
 
-fn centered_rec(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![
