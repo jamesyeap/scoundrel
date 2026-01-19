@@ -103,8 +103,10 @@ impl App {
             bail!("Only cards with Heart suite can be used to add life points!");
         }
 
-        let life_points_to_add: u8 = card.rank.get_value().try_into()?;
-        self.life = std::cmp::min(self.life.saturating_add(life_points_to_add), MAX_LIFE);
+        let life_points_given_by_card: u8 = card.rank.get_value().try_into()?;
+        let life_points_addable: u8 = MAX_LIFE - self.life; // user's life cannot exceed MAX_LIFE points
+        let life_points_to_add = std::cmp::min(life_points_given_by_card, life_points_addable);
+        self.life = self.life.saturating_add(life_points_to_add);
 
         // display notification
         self.notifications

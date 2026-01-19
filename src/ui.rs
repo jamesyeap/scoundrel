@@ -80,17 +80,19 @@ pub fn ui(frame: &mut Frame, app: &App) {
         }
 
         CurrentScreen::ChooseWeaponOrBareKnuckle => {
+            let popup_area = centered_rec(70, 50, frame.area());
+
             let block = Block::default()
                 .borders(Borders::ALL)
                 .title("Use equipped weapon? (y/n)");
 
-            frame.render_widget(block, frame.area());
+            frame.render_widget(block, popup_area);
 
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(vec![Percentage(50), Percentage(50)])
                 .margin(2)
-                .split(frame.area());
+                .split(popup_area);
 
             let weapon = Paragraph::new(Text::styled(
                 format!("{}", app.equipped_weapon.as_ref().unwrap()),
@@ -132,7 +134,6 @@ fn render_notifications(frame: &mut Frame, app: &App, area: Rect) {
         ))
     };
 
-    // TODO: display actual notifications
     frame.render_widget(notification, area);
 }
 
@@ -230,4 +231,26 @@ pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
         })
         .enumerate()
         .for_each(|(idx, card_widget)| frame.render_widget(card_widget, cards_layout[idx]));
+}
+
+fn centered_rec(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let vertical_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Percentage((100 - percent_y) / 2),
+            Percentage(percent_y),
+            Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    let horizontal_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(vec![
+            Percentage((100 - percent_x) / 2),
+            Percentage(percent_x),
+            Percentage((100 - percent_x) / 2),
+        ])
+        .split(vertical_chunks[1]);
+
+    horizontal_chunks[1] // return the middle chunk
 }
