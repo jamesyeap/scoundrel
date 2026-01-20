@@ -9,68 +9,6 @@ use strum_macros::EnumIter;
 pub struct Deck {
     cards: Vec<Card>,
 }
-
-#[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
-pub enum Suite {
-    Spade,
-    Club,
-    Diamond,
-    Heart,
-}
-
-#[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
-pub enum Rank {
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace,
-}
-
-pub trait Value {
-    fn get_value(&self) -> usize;
-}
-
-impl Value for Rank {
-    fn get_value(&self) -> usize {
-        match self {
-            Rank::Two => 2,
-            Rank::Three => 3,
-            Rank::Four => 4,
-            Rank::Five => 5,
-            Rank::Six => 6,
-            Rank::Seven => 7,
-            Rank::Eight => 8,
-            Rank::Nine => 9,
-            Rank::Ten => 10,
-            Rank::Jack => 11,
-            Rank::Queen => 12,
-            Rank::King => 13,
-            Rank::Ace => 14,
-        }
-    }
-}
-
-#[derive(Hash, PartialEq, Eq, Debug)]
-pub struct Card {
-    pub suite: Suite,
-    pub rank: Rank,
-}
-
-impl Display for Card {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<{:?}, {:?}>", self.suite, self.rank)
-    }
-}
-
 impl Deck {
     fn new() -> Self {
         let mut cards = Vec::new();
@@ -118,6 +56,67 @@ impl Deck {
 impl Default for Deck {
     fn default() -> Self {
         Deck::new()
+    }
+}
+
+#[derive(Hash, PartialEq, Eq, Debug)]
+pub struct Card {
+    pub suite: Suite,
+    pub rank: Rank,
+}
+
+impl Display for Card {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<{:?}, {:?}>", self.suite, self.rank)
+    }
+}
+
+#[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
+pub enum Suite {
+    Spade,
+    Club,
+    Diamond,
+    Heart,
+}
+
+#[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
+pub enum Rank {
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    Ten,
+    Jack,
+    Queen,
+    King,
+    Ace,
+}
+
+pub trait Value {
+    fn get_value(&self) -> usize;
+}
+
+impl Value for Rank {
+    fn get_value(&self) -> usize {
+        match self {
+            Rank::Two => 2,
+            Rank::Three => 3,
+            Rank::Four => 4,
+            Rank::Five => 5,
+            Rank::Six => 6,
+            Rank::Seven => 7,
+            Rank::Eight => 8,
+            Rank::Nine => 9,
+            Rank::Ten => 10,
+            Rank::Jack => 11,
+            Rank::Queen => 12,
+            Rank::King => 13,
+            Rank::Ace => 14,
+        }
     }
 }
 
