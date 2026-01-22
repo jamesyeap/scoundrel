@@ -1,12 +1,13 @@
+use std::io::BufRead;
+use tui_cards::{Card, Rank, Suit};
 use crate::app::{App, CurrentScreen, HAND_SIZE};
 use ratatui::Frame;
 use ratatui::layout::Constraint::{Length, Percentage};
-use ratatui::prelude::Constraint::Fill;
-use ratatui::prelude::{Color, Direction, Layout, Line, Rect, Span};
+use ratatui::prelude::Constraint::{Fill, Min};
+use ratatui::prelude::{Color, Direction, Layout, Rect, Span};
 use ratatui::style::Style;
 use ratatui::text::Text;
 use ratatui::widgets::{Block, Borders, Paragraph};
-use std::fmt::format;
 
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
@@ -220,40 +221,18 @@ pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
     app.hand
         .iter()
         .map(|card| match card {
-            Some(card) => Paragraph::new(Span::styled(
-                card.to_string(),
-                Style::default().fg(Color::Blue),
-            ))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::LightGreen)),
-            ),
-            None => Paragraph::new(Span::styled("USED", Style::default().fg(Color::DarkGray)))
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .style(Style::default().fg(Color::DarkGray)),
-                ),
+            Some(card) => {
+                card.into()
+            },
+            None => {
+                // TODO: replace with empty card slot
+                Card::new(Rank::Ace, Suit::Spades)
+            },
         })
         .enumerate()
         .for_each(|(idx, card_widget)| {
             // render card
-            let curr_card_layout = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(vec![Percentage(90), Percentage(10)])
-                .split(cards_layout[idx]);
-
-            let main_card_area = curr_card_layout[0];
-            frame.render_widget(card_widget, main_card_area);
-
-            // render card number, to let user know which number to press to select this card
-            let card_number = idx + 1;
-            let text = Text::styled(format!("({card_number})"), Style::default().fg(Color::Gray));
-            let card_number_area =
-                curr_card_layout[1].centered(Length(text.width() as u16), Length(1));
-            let card_number_widget = Paragraph::new(text);
-            frame.render_widget(card_number_widget, card_number_area);
+            frame.render_widget(&card_widget, cards_layout[idx]);
         });
 }
 

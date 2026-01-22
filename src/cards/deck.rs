@@ -71,12 +71,31 @@ impl Display for Card {
     }
 }
 
+impl From<&Card> for tui_cards::Card {
+    fn from(value: &Card) -> Self {
+        let rank: tui_cards::Rank = value.rank.into();
+        let suit: tui_cards::Suit = value.suite.into();
+        tui_cards::Card::new(rank, suit)
+    }
+}
+
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
 pub enum Suite {
     Spade,
     Club,
     Diamond,
     Heart,
+}
+
+impl From<Suite> for tui_cards::Suit {
+    fn from(value: Suite) -> Self {
+        match value {
+            Suite::Spade => tui_cards::Suit::Spades,
+            Suite::Club => tui_cards::Suit::Clubs,
+            Suite::Diamond => tui_cards::Suit::Diamonds,
+            Suite::Heart => tui_cards::Suit::Hearts,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
@@ -94,6 +113,26 @@ pub enum Rank {
     Queen,
     King,
     Ace,
+}
+
+impl From<Rank> for tui_cards::Rank {
+    fn from(value: Rank) -> Self {
+        match value {
+            Rank::Two => tui_cards::Rank::Two,
+            Rank::Three => tui_cards::Rank::Three,
+            Rank::Four => tui_cards::Rank::Four,
+            Rank::Five => tui_cards::Rank::Five,
+            Rank::Six => tui_cards::Rank::Six,
+            Rank::Seven => tui_cards::Rank::Seven,
+            Rank::Eight => tui_cards::Rank::Eight,
+            Rank::Nine => tui_cards::Rank::Nine,
+            Rank::Ten => tui_cards::Rank::Ten,
+            Rank::Jack => tui_cards::Rank::Jack,
+            Rank::Queen => tui_cards::Rank::Queen,
+            Rank::King => tui_cards::Rank::King,
+            Rank::Ace => tui_cards::Rank::Ace,
+        }
+    }
 }
 
 pub trait Value {
