@@ -11,7 +11,7 @@ TODO
 ## Roadmap
 - [x] Implement game engine
 - [x] Implement UI in Ratatui 
-- [] Improve splash screen
-- [] Implement an in-game tutorial
-- [] Track which cards have already been seen
-- [] Improve end-of-game screens (won/lost)
+- [ ] Improve splash screen
+- [ ] Implement an in-game tutorial
+- [ ] Track which cards have already been seen
+- [ ] Improve end-of-game screens (won/lost)
