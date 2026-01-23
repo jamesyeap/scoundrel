@@ -6,6 +6,8 @@ use std::slice::Iter;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+pub const MAX_DECK_SIZE: usize = 52;
+
 pub struct Deck {
     cards: Vec<Card>,
 }
@@ -19,6 +21,8 @@ impl Deck {
                 cards.push(card);
             }
         }
+
+        assert_eq!(cards.len(), MAX_DECK_SIZE);
 
         Self { cards }
     }
