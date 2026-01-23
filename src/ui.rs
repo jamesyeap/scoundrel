@@ -23,12 +23,24 @@ trait Emoji {
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
         CurrentScreen::Welcome => {
-            let welcome_message = Paragraph::new(Text::styled(
-                "Welcome! Press any button to continue; or press (q) to quit.",
-                Style::default().fg(Color::Green),
-            ));
+            let welcome_message = Paragraph::new(Text::from(vec![
+                Line::styled(
+                    "Welcome to Scoundrel, a single-player game that you can play with any deck of cards.",
+                    Style::default().fg(Color::White),
+                ).centered(),
 
-            frame.render_widget(welcome_message, frame.area());
+                Line::styled(
+                    "Press any button to continue; or press (q) to quit.",
+                    Style::default().fg(Color::Magenta),
+                ).centered(),
+
+                Line::styled(
+                    "How to play (links to YouTube - credits to @Rulies): https://www.youtube.com/watch?v=Gt2tYzM93h4",
+                    Style::default().fg(Color::White),
+                ).centered(),
+            ]));
+
+            frame.render_widget(welcome_message, centered_rect(80, 30, frame.area()));
         }
 
         CurrentScreen::BeforeRoom => {
