@@ -1,6 +1,5 @@
 use crate::app::{App, CurrentScreen, HAND_SIZE};
 use ratatui::Frame;
-use ratatui::layout::Constraint;
 use ratatui::layout::Constraint::{Length, Percentage, Ratio};
 use ratatui::prelude::Constraint::{Fill, Min};
 use ratatui::prelude::{Color, Direction, Layout, Rect, Span};
@@ -8,7 +7,6 @@ use ratatui::style::Style;
 use ratatui::text::Text;
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use std::io::BufRead;
-use tui_cards::{Card, Rank, Suit};
 
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
