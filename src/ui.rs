@@ -1,17 +1,24 @@
-use crate::app::{App, CurrentScreen, HAND_SIZE, MAX_LIFE};
+use crate::app::{App, CurrentScreen, MAX_LIFE};
+use crate::cards::deck::{Card, MAX_DECK_SIZE, Suite};
 use color_eyre::owo_colors::OwoColorize;
 use ratatui::Frame;
-use ratatui::layout::Constraint::{Length, Percentage, Ratio};
+use ratatui::layout::Constraint::Percentage;
 use ratatui::prelude::Color::Gray;
-use ratatui::prelude::Constraint::{Fill, Min};
+use ratatui::prelude::Constraint::Fill;
 use ratatui::prelude::{Color, Direction, Layout, Line, Rect, Span};
-use ratatui::style::Color::White;
 use ratatui::style::Style;
 use ratatui::style::palette::tailwind;
 use ratatui::text::Text;
-use ratatui::widgets::{Block, Borders, Clear, Gauge, List, ListItem, Paragraph};
+use ratatui::widgets::{Block, Borders, Gauge, List, ListItem, Paragraph};
 use std::io::BufRead;
-use crate::cards::deck::MAX_DECK_SIZE;
+
+trait ListStyle {
+    fn get_list_style(&self) -> Style;
+}
+
+trait Emoji {
+    fn get_emoji(&self) -> String;
+}
 
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
@@ -100,8 +107,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         CurrentScreen::ChooseWeaponOrBareKnuckle => {
             let popup_area = centered_rect(70, 50, frame.area());
 
-            let block = Block::default()
-                .title("Use equipped weapon? (y/n)");
+            let block = Block::default().title("Use equipped weapon? (y/n)");
 
             frame.render_widget(block, popup_area);
 
@@ -112,18 +118,28 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 .split(popup_area);
 
             let weapon = Paragraph::new(Text::styled(
-                format!("{}", app.equipped_weapon.as_ref().unwrap()),
+                format!(
+                    "{} {}",
+                    app.equipped_weapon.as_ref().unwrap(),
+                    app.equipped_weapon.as_ref().unwrap().get_emoji()
+                ),
                 Style::default().fg(Color::Blue),
             ))
+            .centered()
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .title_bottom("Your equipped weapon"),
             );
             let creature = Paragraph::new(Text::styled(
-                format!("{}", app.in_combat_with_creature.as_ref().unwrap()),
+                format!(
+                    "{} {}",
+                    app.in_combat_with_creature.as_ref().unwrap(),
+                    app.in_combat_with_creature.as_ref().unwrap().get_emoji()
+                ),
                 Style::default().fg(Color::Blue),
             ))
+            .centered()
             .block(
                 Block::default()
                     .borders(Borders::ALL)
@@ -185,7 +201,11 @@ fn render_equipped_weapon(frame: &mut Frame, app: &App, area: Rect) {
     let equipped_weapon_key = Span::styled("Equipped weapon: ", Style::default().fg(Color::White));
     let equipped_weapon_value = match app.equipped_weapon.as_ref() {
         Some(equipped_weapon) => Span::styled(
-            equipped_weapon.to_string(),
+            format!(
+                "{} {}",
+                equipped_weapon.to_string(),
+                equipped_weapon.get_emoji()
+            ),
             Style::default().fg(Color::Blue),
         ),
         None => Span::styled("NO WEAPON EQUIPPED", Style::default().fg(Color::Blue)),
@@ -196,7 +216,11 @@ fn render_equipped_weapon(frame: &mut Frame, app: &App, area: Rect) {
         Span::styled("Last creature blocked: ", Style::default().fg(Color::White));
     let last_creature_blocked_value = match app.blocked_creatures.last() {
         Some(blocked_creature) => Span::styled(
-            blocked_creature.to_string(),
+            format!(
+                "{} {}",
+                blocked_creature.to_string(),
+                blocked_creature.get_emoji()
+            ),
             Style::default().fg(Color::Blue),
         ),
         None => Span::styled("NO CREATURE BLOCKED", Style::default().fg(Color::Blue)),
@@ -209,7 +233,7 @@ fn render_equipped_weapon(frame: &mut Frame, app: &App, area: Rect) {
             last_creature_blocked_line,
         ]))
         .block(Block::default().borders(Borders::ALL).title("Weapon")),
-        area
+        area,
     );
 }
 
@@ -217,14 +241,39 @@ fn render_health(frame: &mut Frame, app: &App, area: Rect) {
     let health_gauge = Gauge::default()
         .gauge_style(tailwind::GREEN.c800)
         .ratio(app.life as f64 / MAX_LIFE as f64)
-        .label(Span::styled(format!("{} / {}", app.life, MAX_LIFE), Style::default().fg(Color::White)))
+        .label(Span::styled(
+            format!("{} / {}", app.life, MAX_LIFE),
+            Style::default().fg(Color::White),
+        ))
         .block(Block::default().borders(Borders::ALL).title("Health"));
 
     frame.render_widget(health_gauge, area);
 }
 
+impl ListStyle for Card {
+    fn get_list_style(&self) -> Style {
+        match self.suite {
+            Suite::Spade | Suite::Club => Style::default().fg(Color::White).bg(Color::Red),
+            Suite::Diamond => Style::default().fg(Color::White).bg(Color::Magenta),
+            Suite::Heart => Style::default().fg(Color::White).bg(Color::Green),
+        }
+    }
+}
+
+impl Emoji for Card {
+    fn get_emoji(&self) -> String {
+        match self.suite {
+            Suite::Spade | Suite::Club => "👺".to_string(),
+            Suite::Diamond => "⚔️".to_string(),
+            Suite::Heart => "❤️".to_string(),
+        }
+    }
+}
+
 pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
-    let border = Block::new().borders(Borders::ALL).title(Line::from("Room - select card (1/2/3/4)").centered());
+    let border = Block::new()
+        .borders(Borders::ALL)
+        .title(Line::from("Room - select card (1/2/3/4)").centered());
 
     let list_items: Vec<ListItem> = app
         .hand
@@ -232,8 +281,8 @@ pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
         .enumerate()
         .map(|(idx, card)| match card {
             Some(card) => ListItem::new(Text::styled(
-                format!("[{}]: {}", idx + 1, card.to_string()),
-                Style::default().fg(Color::Black).bg(White),
+                format!("[{}]: {} {}", idx + 1, card.to_string(), card.get_emoji()),
+                card.get_list_style(),
             )),
             None => ListItem::new(Text::styled(
                 "USED",
