@@ -48,6 +48,14 @@ jobs:
             cp target/${{ matrix.target }}/release/$BIN_NAME dist/
           fi
 
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd dist
+          for f in *; do
+            shasum -a 256 "$f" > "$f.sha256"
+          done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
