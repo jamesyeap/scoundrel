@@ -1,6 +1,6 @@
 # Scoundrel
 A single-player card game.
-![images](./resources/images/game_screen_1.png)
+![images](./resources/images/game_screen_1.gif)
 
 ## Installation
 TODO
