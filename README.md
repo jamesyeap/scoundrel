@@ -1,5 +1,5 @@
 # Scoundrel
-A solo card game of risk and survival played with a standard deck of cards - playable in your terminal.
+A solo card game of risk and survival played with a standard deck of cards, now playable in your terminal.
 
 ![images](./resources/images/game_screen_1.gif)
 
