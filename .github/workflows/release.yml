@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          BIN_NAME=your_app
+          BIN_NAME=scoundrel
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             cp target/${{ matrix.target }}/release/$BIN_NAME.exe dist/
           else
