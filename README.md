@@ -1,5 +1,5 @@
 # Scoundrel
-A single-player card game.
+A solo card game of risk and survival played with a standard deck of cards - playable in your terminal.
 ![images](./resources/images/game_screen_1.gif)
 
 ## Installation
@@ -12,7 +12,12 @@ For Windows users:
 * download the `.exe` file from the [Releases](https://github.com/jamesyeap/scoundrel/releases) section.
 
 ## How To Play
-- Watch this [tutorial](https://www.youtube.com/watch?v=Gt2tYzM93h4) (credits to [@Rulies](https://www.youtube.com/@Rulies))
+In Scoundrel, you play the role of a lone rogue descending through a deadly dungeon.
+* Each suit represents either:
+   * a monster to fight, or
+   * a weapon to wield, or
+   * potions to heal
+* Watch this [tutorial](https://www.youtube.com/watch?v=Gt2tYzM93h4) (credits to [@Rulies](https://www.youtube.com/@Rulies))
 
 ## Roadmap
 - [x] Implement game engine
