@@ -1,13 +1,14 @@
-use std::io::BufRead;
-use tui_cards::{Card, Rank, Suit};
 use crate::app::{App, CurrentScreen, HAND_SIZE};
 use ratatui::Frame;
-use ratatui::layout::Constraint::{Length, Percentage};
+use ratatui::layout::Constraint;
+use ratatui::layout::Constraint::{Length, Percentage, Ratio};
 use ratatui::prelude::Constraint::{Fill, Min};
 use ratatui::prelude::{Color, Direction, Layout, Rect, Span};
 use ratatui::style::Style;
 use ratatui::text::Text;
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph};
+use std::io::BufRead;
+use tui_cards::{Card, Rank, Suit};
 
 pub fn ui(frame: &mut Frame, app: &App) {
     match app.current_screen {
@@ -214,25 +215,21 @@ pub fn render_cards(frame: &mut Frame, app: &App, area: Rect) {
 
     let cards_layout = Layout::default()
         .direction(Direction::Horizontal)
-        .margin(1)
+        // .margin(1)
         .constraints(vec![Percentage((100 / HAND_SIZE) as u16); HAND_SIZE])
         .split(area);
 
     app.hand
         .iter()
         .map(|card| match card {
-            Some(card) => {
-                card.into()
-            },
-            None => {
-                // TODO: replace with empty card slot
-                Card::new(Rank::Ace, Suit::Spades)
-            },
+            // TODO: render proper cards here
+            Some(card) => Text::styled(card.to_string(), Style::default().fg(Color::LightYellow)),
+            None => Text::styled("USED", Style::default().fg(Color::LightYellow)),
         })
         .enumerate()
         .for_each(|(idx, card_widget)| {
             // render card
-            frame.render_widget(&card_widget, cards_layout[idx]);
+            frame.render_widget(&card_widget, centered_rect(50, 80, cards_layout[idx]));
         });
 }
 
