@@ -4,7 +4,7 @@ use color_eyre::eyre;
 use color_eyre::eyre::bail;
 
 // CONSTANTS
-const MAX_LIFE: u8 = 20;
+pub const MAX_LIFE: u8 = 20;
 pub const HAND_SIZE: usize = 4;
 
 #[derive(Eq, PartialEq)]

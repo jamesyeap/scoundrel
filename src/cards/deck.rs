@@ -6,8 +6,73 @@ use std::slice::Iter;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+pub const MAX_DECK_SIZE: usize = 52;
+
 pub struct Deck {
     cards: Vec<Card>,
+}
+impl Deck {
+    fn new() -> Self {
+        let mut cards = Vec::new();
+
+        for suite in Suite::iter() {
+            for rank in Rank::iter() {
+                let card = Card { suite, rank };
+                cards.push(card);
+            }
+        }
+
+        assert_eq!(cards.len(), MAX_DECK_SIZE);
+
+        Self { cards }
+    }
+
+    pub fn draw_card(&mut self) -> Option<Card> {
+        if self.cards.is_empty() {
+            return None;
+        }
+
+        let mut rng = rng();
+
+        // pick a card at random
+        let num_cards_left = self.cards.len();
+        let chosen_card_idx = rng.random_range(0..num_cards_left);
+        let chosen_card = self.cards.remove(chosen_card_idx);
+
+        Some(chosen_card)
+    }
+
+    pub fn insert_card(&mut self, card: Card) {
+        // TODO: check if card already exists in deck before inserting it
+        //         we should not have two copies of a card in a Deck
+        self.cards.push(card);
+    }
+
+    pub fn len(&self) -> usize {
+        self.cards.len()
+    }
+
+    pub fn iter(&'_ self) -> Iter<'_, Card> {
+        self.cards.iter()
+    }
+}
+
+impl Default for Deck {
+    fn default() -> Self {
+        Deck::new()
+    }
+}
+
+#[derive(Hash, PartialEq, Eq, Debug)]
+pub struct Card {
+    pub suite: Suite,
+    pub rank: Rank,
+}
+
+impl Display for Card {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<{:?}, {:?}>", self.suite, self.rank)
+    }
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, Debug)]
@@ -56,68 +121,6 @@ impl Value for Rank {
             Rank::King => 13,
             Rank::Ace => 14,
         }
-    }
-}
-
-#[derive(Hash, PartialEq, Eq, Debug)]
-pub struct Card {
-    pub suite: Suite,
-    pub rank: Rank,
-}
-
-impl Display for Card {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<{:?}, {:?}>", self.suite, self.rank)
-    }
-}
-
-impl Deck {
-    fn new() -> Self {
-        let mut cards = Vec::new();
-
-        for suite in Suite::iter() {
-            for rank in Rank::iter() {
-                let card = Card { suite, rank };
-                cards.push(card);
-            }
-        }
-
-        Self { cards }
-    }
-
-    pub fn draw_card(&mut self) -> Option<Card> {
-        if self.cards.is_empty() {
-            return None;
-        }
-
-        let mut rng = rng();
-
-        // pick a card at random
-        let num_cards_left = self.cards.len();
-        let chosen_card_idx = rng.random_range(0..num_cards_left);
-        let chosen_card = self.cards.remove(chosen_card_idx);
-
-        Some(chosen_card)
-    }
-
-    pub fn insert_card(&mut self, card: Card) {
-        // TODO: check if card already exists in deck before inserting it
-        //         we should not have two copies of a card in a Deck
-        self.cards.push(card);
-    }
-
-    pub fn len(&self) -> usize {
-        self.cards.len()
-    }
-
-    pub fn iter(&'_ self) -> Iter<'_, Card> {
-        self.cards.iter()
-    }
-}
-
-impl Default for Deck {
-    fn default() -> Self {
-        Deck::new()
     }
 }
 
